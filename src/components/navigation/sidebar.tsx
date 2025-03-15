@@ -5,7 +5,7 @@ import {
   Users, 
   Briefcase, 
   FileText, 
-  FileContract, 
+  FilePen, 
   DollarSign,
   Home,
   Menu,
@@ -60,7 +60,7 @@ const Sidebar: React.FC = () => {
     { icon: Users, label: "Clientes", href: "/clients" },
     { icon: Briefcase, label: "Processos", href: "/cases" },
     { icon: FileText, label: "Documentos", href: "/documents" },
-    { icon: FileContract, label: "Contratos", href: "/contracts" },
+    { icon: FilePen, label: "Contratos", href: "/contracts" },
     { icon: DollarSign, label: "Honorários", href: "/billing" },
   ];
 
