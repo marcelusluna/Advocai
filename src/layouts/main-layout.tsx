@@ -1,6 +1,7 @@
 
 import React from "react";
 import Sidebar from "@/components/navigation/sidebar";
+import AiAssistant from "@/components/ai/ai-assistant";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <main className="flex-1 overflow-x-hidden">
         {children}
       </main>
+      <AiAssistant />
     </div>
   );
 };
