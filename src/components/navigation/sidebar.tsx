@@ -12,6 +12,7 @@ import {
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { navItems } from "./sidebar-data";
 
 interface NavItemProps {
   icon: React.ElementType;
@@ -55,15 +56,6 @@ const Sidebar: React.FC = () => {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const navItems = [
-    { icon: Home, label: "Dashboard", href: "/" },
-    { icon: Users, label: "Clientes", href: "/clients" },
-    { icon: Briefcase, label: "Processos", href: "/cases" },
-    { icon: FileText, label: "Documentos", href: "/documents" },
-    { icon: FilePen, label: "Contratos", href: "/contracts" },
-    { icon: DollarSign, label: "Honorários", href: "/billing" },
-  ];
-
   return (
     <div 
       className={cn(
@@ -81,6 +73,7 @@ const Sidebar: React.FC = () => {
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="p-1 rounded-md hover:bg-sidebar-accent transition-colors"
+            aria-label={isCollapsed ? "Expandir menu" : "Colapsar menu"}
           >
             {isCollapsed ? (
               <Menu className="h-5 w-5 text-sidebar-foreground" />
