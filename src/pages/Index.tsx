@@ -7,6 +7,8 @@ import StatsCard from "@/components/dashboard/stats-card";
 import RecentClients from "@/components/dashboard/recent-clients";
 import RecentCases from "@/components/dashboard/recent-cases";
 import UpcomingTasks from "@/components/dashboard/upcoming-tasks";
+import DashboardCharts from "@/components/dashboard/dashboard-charts";
+import NotificationsPanel from "@/components/dashboard/notifications-panel";
 
 const Index: React.FC = () => {
   return (
@@ -51,13 +53,18 @@ const Index: React.FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <RecentClients />
-            <RecentCases />
-          </div>
+          {/* Gráficos */}
+          <DashboardCharts />
 
-          <div className="mb-6">
-            <UpcomingTasks />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div className="lg:col-span-2 grid grid-cols-1 gap-6">
+              <RecentCases />
+              <UpcomingTasks />
+            </div>
+            <div className="grid grid-cols-1 gap-6">
+              <NotificationsPanel />
+              <RecentClients />
+            </div>
           </div>
         </Container>
       </div>

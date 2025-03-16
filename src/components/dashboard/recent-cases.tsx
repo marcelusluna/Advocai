@@ -1,10 +1,14 @@
 
-import React from "react";
-import { Briefcase } from "lucide-react";
+import React, { useState } from "react";
+import { Briefcase, Plus, Search, Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 
 // Dados de exemplo para processos recentes
-const recentCasesData = [
+const initialCasesData = [
   {
     id: "1",
     number: "0001234-12.2023.8.26.0100",
@@ -55,45 +59,350 @@ const getStageColor = (stage: string) => {
 };
 
 const RecentCases: React.FC = () => {
+  const [cases, setCases] = useState(initialCasesData);
+  const [filteredCases, setFilteredCases] = useState(initialCasesData);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+  const [showNewCaseDialog, setShowNewCaseDialog] = useState(false);
+  const [showFilterDialog, setShowFilterDialog] = useState(false);
+  const [newCase, setNewCase] = useState({
+    number: "",
+    client: "",
+    type: "Cível",
+    stage: "Inicial"
+  });
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  
+  const { toast } = useToast();
+
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    if (!term.trim()) {
+      setFilteredCases(cases);
+      return;
+    }
+    
+    const filtered = cases.filter(item => 
+      item.number.toLowerCase().includes(term.toLowerCase()) || 
+      item.client.toLowerCase().includes(term.toLowerCase())
+    );
+    setFilteredCases(filtered);
+  };
+
+  const addNewCase = () => {
+    if (!newCase.number || !newCase.client) {
+      toast({
+        title: "Dados incompletos",
+        description: "Preencha todos os campos obrigatórios.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newCaseData = {
+      id: (cases.length + 1).toString(),
+      number: newCase.number,
+      client: newCase.client,
+      type: newCase.type,
+      date: "Agora",
+      stage: newCase.stage
+    };
+
+    const updatedCases = [newCaseData, ...cases];
+    setCases(updatedCases);
+    setFilteredCases(updatedCases);
+    setNewCase({ number: "", client: "", type: "Cível", stage: "Inicial" });
+    setShowNewCaseDialog(false);
+    
+    toast({
+      title: "Processo adicionado",
+      description: `Processo ${newCase.number} foi adicionado com sucesso.`
+    });
+  };
+
+  const applyFilter = (filter: string) => {
+    if (activeFilter === filter) {
+      setActiveFilter(null);
+      setFilteredCases(cases);
+    } else {
+      setActiveFilter(filter);
+      const filtered = cases.filter(item => 
+        filter === "all" ? true : item.stage === filter || item.type === filter
+      );
+      setFilteredCases(filtered);
+    }
+    setShowFilterDialog(false);
+    
+    toast({
+      title: "Filtro aplicado",
+      description: `Lista filtrada com sucesso.`
+    });
+  };
+
   return (
-    <div className="bg-card rounded-lg border border-border shadow-sm animate-slide-up delay-100">
-      <div className="flex items-center justify-between p-4 border-b border-border">
-        <div className="flex items-center gap-2">
-          <Briefcase className="h-5 w-5 text-primary" />
-          <h3 className="font-medium">Processos Recentes</h3>
+    <>
+      <div className="bg-card rounded-lg border border-border shadow-sm animate-slide-up delay-100">
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <Briefcase className="h-5 w-5 text-primary" />
+            <h3 className="font-medium">Processos Recentes</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            {showSearch ? (
+              <div className="flex items-center bg-muted rounded-md">
+                <Input
+                  type="text"
+                  placeholder="Buscar processo..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="h-8 text-xs border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8" 
+                  onClick={() => {
+                    setShowSearch(false);
+                    setSearchTerm("");
+                    setFilteredCases(cases);
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8" 
+                  onClick={() => setShowSearch(true)}
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className={cn(
+                    "h-8 w-8",
+                    activeFilter && "text-primary bg-primary/10"
+                  )}
+                  onClick={() => setShowFilterDialog(true)}
+                >
+                  <Filter className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8" 
+                  onClick={() => setShowNewCaseDialog(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+            <span className="text-xs text-muted-foreground">Total: {filteredCases.length}</span>
+          </div>
         </div>
-        <span className="text-xs text-muted-foreground">Total: {recentCasesData.length}</span>
-      </div>
-      
-      <div className="p-2">
-        {recentCasesData.map((item) => (
-          <div 
-            key={item.id} 
-            className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-md transition-colors cursor-pointer"
-          >
-            <div className="flex flex-col">
-              <span className="font-medium">{item.number}</span>
-              <span className="text-xs text-muted-foreground">{item.client} • {item.type}</span>
+        
+        <div className="p-2">
+          {filteredCases.length > 0 ? (
+            filteredCases.map((item) => (
+              <div 
+                key={item.id} 
+                className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-md transition-colors cursor-pointer"
+              >
+                <div className="flex flex-col">
+                  <span className="font-medium">{item.number}</span>
+                  <span className="text-xs text-muted-foreground">{item.client} • {item.type}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground">{item.date}</span>
+                  <span className={cn(
+                    "text-xs px-2 py-0.5 rounded-full border",
+                    getStageColor(item.stage)
+                  )}>
+                    {item.stage}
+                  </span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-6 text-muted-foreground">
+              <p>Nenhum processo encontrado</p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-muted-foreground">{item.date}</span>
-              <span className={cn(
-                "text-xs px-2 py-0.5 rounded-full border",
-                getStageColor(item.stage)
-              )}>
-                {item.stage}
-              </span>
+          )}
+        </div>
+        
+        <div className="p-3 border-t border-border">
+          <Button 
+            variant="link" 
+            className="text-sm text-primary hover:text-primary/80 transition-colors w-full text-center"
+            onClick={() => {
+              toast({
+                title: "Redirecionando",
+                description: "Você seria redirecionado para a página de todos os processos."
+              });
+            }}
+          >
+            Ver todos os processos
+          </Button>
+        </div>
+      </div>
+
+      {/* Dialog para novo processo */}
+      <Dialog open={showNewCaseDialog} onOpenChange={setShowNewCaseDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Processo</DialogTitle>
+            <DialogDescription>
+              Preencha os campos abaixo para adicionar um novo processo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <label htmlFor="number" className="text-sm font-medium">Número do Processo</label>
+              <Input
+                id="number"
+                placeholder="0000000-00.0000.0.00.0000"
+                value={newCase.number}
+                onChange={(e) => setNewCase({...newCase, number: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="client" className="text-sm font-medium">Cliente</label>
+              <Input
+                id="client"
+                placeholder="Nome do cliente"
+                value={newCase.client}
+                onChange={(e) => setNewCase({...newCase, client: e.target.value})}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="type" className="text-sm font-medium">Tipo</label>
+                <select
+                  id="type"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={newCase.type}
+                  onChange={(e) => setNewCase({...newCase, type: e.target.value})}
+                >
+                  <option>Cível</option>
+                  <option>Trabalhista</option>
+                  <option>Tributário</option>
+                  <option>Criminal</option>
+                  <option>Administrativo</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="stage" className="text-sm font-medium">Fase</label>
+                <select
+                  id="stage"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={newCase.stage}
+                  onChange={(e) => setNewCase({...newCase, stage: e.target.value})}
+                >
+                  <option>Inicial</option>
+                  <option>Conhecimento</option>
+                  <option>Recursal</option>
+                  <option>Execução</option>
+                </select>
+              </div>
             </div>
           </div>
-        ))}
-      </div>
-      
-      <div className="p-3 border-t border-border">
-        <button className="text-sm text-primary hover:text-primary/80 transition-colors w-full text-center">
-          Ver todos os processos
-        </button>
-      </div>
-    </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewCaseDialog(false)}>Cancelar</Button>
+            <Button onClick={addNewCase}>Adicionar Processo</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para filtros */}
+      <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Filtrar Processos</DialogTitle>
+            <DialogDescription>
+              Selecione os critérios para filtrar a lista de processos.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Tipo</p>
+              <div className="flex flex-wrap gap-2">
+                <Button 
+                  variant={activeFilter === "Cível" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => applyFilter("Cível")}
+                >
+                  Cível
+                </Button>
+                <Button 
+                  variant={activeFilter === "Trabalhista" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => applyFilter("Trabalhista")}
+                >
+                  Trabalhista
+                </Button>
+                <Button 
+                  variant={activeFilter === "Administrativo" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => applyFilter("Administrativo")}
+                >
+                  Administrativo
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Fase</p>
+              <div className="flex flex-wrap gap-2">
+                <Button 
+                  variant={activeFilter === "Inicial" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => applyFilter("Inicial")}
+                >
+                  Inicial
+                </Button>
+                <Button 
+                  variant={activeFilter === "Conhecimento" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => applyFilter("Conhecimento")}
+                >
+                  Conhecimento
+                </Button>
+                <Button 
+                  variant={activeFilter === "Recursal" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => applyFilter("Recursal")}
+                >
+                  Recursal
+                </Button>
+                <Button 
+                  variant={activeFilter === "Execução" ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => applyFilter("Execução")}
+                >
+                  Execução
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setActiveFilter(null);
+                setFilteredCases(cases);
+                setShowFilterDialog(false);
+              }}
+            >
+              Limpar Filtros
+            </Button>
+            <Button onClick={() => setShowFilterDialog(false)}>Aplicar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
