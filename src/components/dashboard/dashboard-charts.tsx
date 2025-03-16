@@ -1,7 +1,8 @@
 
 import React from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 
 // Dados fictícios para os gráficos
 const processosData = [
@@ -34,6 +35,59 @@ const tiposProcessosData = [
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
 
+// Configuração dos gráficos
+const chartConfig = {
+  processos: {
+    label: "Processos",
+    theme: {
+      light: "#8884d8",
+      dark: "#9b87f5",
+    },
+  },
+  valor: {
+    label: "Faturamento",
+    theme: {
+      light: "#82ca9d",
+      dark: "#82ca9d",
+    },
+  },
+  civel: {
+    label: "Cível",
+    theme: {
+      light: "#0088FE",
+      dark: "#0088FE",
+    },
+  },
+  trabalhista: {
+    label: "Trabalhista",
+    theme: {
+      light: "#00C49F",
+      dark: "#00C49F",
+    },
+  },
+  tributario: {
+    label: "Tributário",
+    theme: {
+      light: "#FFBB28",
+      dark: "#FFBB28",
+    },
+  },
+  criminal: {
+    label: "Criminal",
+    theme: {
+      light: "#FF8042",
+      dark: "#FF8042",
+    },
+  },
+  administrativo: {
+    label: "Administrativo",
+    theme: {
+      light: "#8884d8",
+      dark: "#8884d8",
+    },
+  },
+};
+
 const DashboardCharts: React.FC = () => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -43,18 +97,28 @@ const DashboardCharts: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartContainer config={chartConfig}>
               <BarChart
                 data={processosData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip formatter={(value) => [`${value} processos`, "Quantidade"]} />
-                <Bar dataKey="processos" fill="#8884d8" />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Legend 
+                  content={<ChartLegendContent />} 
+                  verticalAlign="bottom" 
+                  height={36}
+                />
+                <Bar 
+                  dataKey="processos" 
+                  name="Processos" 
+                  fill="var(--color-processos)" 
+                  radius={[4, 4, 0, 0]} 
+                />
               </BarChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </div>
         </CardContent>
       </Card>
@@ -65,18 +129,34 @@ const DashboardCharts: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartContainer config={chartConfig}>
               <LineChart
                 data={faturamentoData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip formatter={(value) => [`R$ ${value.toLocaleString()}`, "Valor"]} />
-                <Line type="monotone" dataKey="valor" stroke="#82ca9d" strokeWidth={2} activeDot={{ r: 8 }} />
+                <ChartTooltip 
+                  content={<ChartTooltipContent 
+                    formatter={(value: number) => [`R$ ${value.toLocaleString()}`, "Valor"]} 
+                  />} 
+                />
+                <Legend 
+                  content={<ChartLegendContent />} 
+                  verticalAlign="bottom" 
+                  height={36}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="valor" 
+                  name="Faturamento" 
+                  stroke="var(--color-valor)" 
+                  strokeWidth={2} 
+                  activeDot={{ r: 8 }} 
+                />
               </LineChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </div>
         </CardContent>
       </Card>
@@ -87,8 +167,8 @@ const DashboardCharts: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="h-72 flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
+            <ChartContainer config={chartConfig}>
+              <PieChart margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                 <Pie
                   data={tiposProcessosData}
                   cx="50%"
@@ -97,15 +177,41 @@ const DashboardCharts: React.FC = () => {
                   innerRadius={60}
                   fill="#8884d8"
                   dataKey="value"
+                  nameKey="name"
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 >
                   {tiposProcessosData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={COLORS[index % COLORS.length]} 
+                      name={entry.name}
+                    />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => [`${value} processos`, "Quantidade"]} />
+                <ChartTooltip 
+                  content={<ChartTooltipContent 
+                    formatter={(value: number) => [`${value} processos`, "Quantidade"]} 
+                  />} 
+                />
+                <Legend
+                  content={(props) => (
+                    <div className="mt-4 flex flex-wrap justify-center gap-4">
+                      {props.payload?.map((entry, index) => (
+                        <div key={`legend-${index}`} className="flex items-center gap-2">
+                          <div
+                            className="h-3 w-3 rounded-sm"
+                            style={{ backgroundColor: entry.color }}
+                          />
+                          <span className="text-xs">{entry.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  verticalAlign="bottom"
+                  height={48}
+                />
               </PieChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </div>
         </CardContent>
       </Card>
