@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Camera, Save, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const Profile = () => {
   const { toast } = useToast();
@@ -36,10 +37,39 @@ const Profile = () => {
           </div>
 
           <Tabs defaultValue="info">
-            <TabsList className="mb-6">
-              <TabsTrigger value="info">Informações Pessoais</TabsTrigger>
-              <TabsTrigger value="credentials">Credenciais</TabsTrigger>
-              <TabsTrigger value="security">Segurança</TabsTrigger>
+            <TabsList className="mb-6 flex-wrap">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger value="info">Informações Pessoais</TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Editar seus dados pessoais</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger value="credentials">Credenciais</TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Gerenciar dados da OAB e certificações</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger value="security">Segurança</TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Configurar senha e opções de segurança</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </TabsList>
 
             <TabsContent value="info">
@@ -55,10 +85,19 @@ const Profile = () => {
                       <AvatarFallback className="text-3xl">JD</AvatarFallback>
                     </Avatar>
                     
-                    <Button variant="outline" size="sm">
-                      <Camera className="mr-2 h-4 w-4" />
-                      Alterar foto
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <Camera className="mr-2 h-4 w-4" />
+                            Alterar foto
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Selecionar uma nova foto de perfil</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </CardContent>
                 </Card>
 
@@ -95,10 +134,19 @@ const Profile = () => {
                       <Separator />
                       
                       <div className="flex justify-end">
-                        <Button type="submit">
-                          <Save className="mr-2 h-4 w-4" />
-                          Salvar alterações
-                        </Button>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button type="submit">
+                                <Save className="mr-2 h-4 w-4" />
+                                Salvar alterações
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Salvar todas as alterações feitas</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     </form>
                   </CardContent>
@@ -136,10 +184,19 @@ const Profile = () => {
                     <Separator />
                     
                     <div className="flex justify-end">
-                      <Button type="submit">
-                        <Save className="mr-2 h-4 w-4" />
-                        Salvar alterações
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button type="submit">
+                              <Save className="mr-2 h-4 w-4" />
+                              Salvar alterações
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Salvar as credenciais profissionais</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </form>
                 </CardContent>
@@ -175,10 +232,19 @@ const Profile = () => {
                     <Separator />
                     
                     <div className="flex justify-end">
-                      <Button type="submit">
-                        <Save className="mr-2 h-4 w-4" />
-                        Atualizar senha
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button type="submit">
+                              <Save className="mr-2 h-4 w-4" />
+                              Atualizar senha
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Salvar nova senha e configurações de segurança</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </form>
                 </CardContent>

@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, MapPin, Save, Users } from "lucide-react";
+import { Building2, MapPin, Save, Users, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const Office = () => {
   const { toast } = useToast();
@@ -35,10 +36,39 @@ const Office = () => {
           </div>
 
           <Tabs defaultValue="info">
-            <TabsList className="mb-6">
-              <TabsTrigger value="info">Informações Básicas</TabsTrigger>
-              <TabsTrigger value="address">Endereço</TabsTrigger>
-              <TabsTrigger value="members">Equipe</TabsTrigger>
+            <TabsList className="mb-6 flex-wrap">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger value="info">Informações Básicas</TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Dados principais do escritório</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger value="address">Endereço</TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Localização e endereço físico</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger value="members">Equipe</TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Membros e colaboradores</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </TabsList>
 
             <TabsContent value="info">
@@ -95,10 +125,19 @@ const Office = () => {
                     <Separator />
                     
                     <div className="flex justify-end">
-                      <Button type="submit">
-                        <Save className="mr-2 h-4 w-4" />
-                        Salvar alterações
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button type="submit">
+                              <Save className="mr-2 h-4 w-4" />
+                              Salvar alterações
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Salvar informações do escritório</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </form>
                 </CardContent>
@@ -147,10 +186,19 @@ const Office = () => {
                     <Separator />
                     
                     <div className="flex justify-end">
-                      <Button type="submit">
-                        <Save className="mr-2 h-4 w-4" />
-                        Salvar alterações
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button type="submit">
+                              <Save className="mr-2 h-4 w-4" />
+                              Salvar alterações
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Salvar informações de endereço</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </form>
                 </CardContent>
@@ -166,13 +214,22 @@ const Office = () => {
                 <CardContent>
                   <div className="mb-6 flex justify-between items-center">
                     <p className="text-sm text-muted-foreground">Total de 5 membros cadastrados</p>
-                    <Button size="sm">
-                      <Users className="mr-2 h-4 w-4" />
-                      Adicionar Membro
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="sm">
+                            <Users className="mr-2 h-4 w-4" />
+                            Adicionar Membro
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Cadastrar novo membro na equipe</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-4 max-h-[400px] overflow-y-auto">
                     {["João da Silva", "Maria Oliveira", "Carlos Santos", "Ana Ferreira", "Paulo Mendes"].map((member, index) => (
                       <Card key={index} className="overflow-hidden">
                         <div className="p-4 flex items-center justify-between">
@@ -191,7 +248,19 @@ const Office = () => {
                               </p>
                             </div>
                           </div>
-                          <Button variant="ghost" size="sm">Editar</Button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Editar
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Editar informações do membro</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                       </Card>
                     ))}

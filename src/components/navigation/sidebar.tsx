@@ -25,6 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface NavItemProps {
   icon: React.ElementType;
@@ -42,25 +43,37 @@ const NavItem: React.FC<NavItemProps> = ({
   isCollapsed
 }) => {
   return (
-    <Link
-      to={href}
-      className={cn(
-        "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 group hover-lift",
-        isActive 
-          ? "bg-primary text-primary-foreground" 
-          : "text-sidebar-foreground hover:bg-sidebar-accent"
-      )}
-    >
-      <Icon className={cn(
-        "h-5 w-5 transition-all",
-        isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
-      )} />
-      {!isCollapsed && (
-        <span className="text-sm font-medium transition-all animate-fade-in">
-          {label}
-        </span>
-      )}
-    </Link>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            to={href}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 group hover-lift",
+              isActive 
+                ? "bg-primary text-primary-foreground" 
+                : "text-sidebar-foreground hover:bg-sidebar-accent"
+            )}
+            aria-label={label}
+          >
+            <Icon className={cn(
+              "h-5 w-5 transition-all",
+              isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
+            )} />
+            {!isCollapsed && (
+              <span className="text-sm font-medium transition-all animate-fade-in">
+                {label}
+              </span>
+            )}
+          </Link>
+        </TooltipTrigger>
+        {isCollapsed && (
+          <TooltipContent side="right">
+            <p>{label}</p>
+          </TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 
@@ -77,17 +90,26 @@ const Sidebar: React.FC = () => {
     >
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between p-4 border-b border-border">
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1 rounded-md hover:bg-sidebar-accent transition-colors mx-auto"
-            aria-label={isCollapsed ? "Expandir menu" : "Colapsar menu"}
-          >
-            {isCollapsed ? (
-              <Menu className="h-5 w-5 text-sidebar-foreground" />
-            ) : (
-              <X className="h-5 w-5 text-sidebar-foreground" />
-            )}
-          </button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setIsCollapsed(!isCollapsed)}
+                  className="p-1 rounded-md hover:bg-sidebar-accent transition-colors mx-auto"
+                  aria-label={isCollapsed ? "Expandir menu" : "Colapsar menu"}
+                >
+                  {isCollapsed ? (
+                    <Menu className="h-5 w-5 text-sidebar-foreground" />
+                  ) : (
+                    <X className="h-5 w-5 text-sidebar-foreground" />
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side={isCollapsed ? "right" : "bottom"}>
+                <p>{isCollapsed ? "Expandir menu" : "Colapsar menu"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         
         {/* User Profile Section */}
@@ -133,15 +155,24 @@ const Sidebar: React.FC = () => {
             </div>
           ) : (
             <div className="flex justify-center">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src="" alt="Foto do perfil" />
-                <AvatarFallback className="bg-primary/10 text-primary">JD</AvatarFallback>
-              </Avatar>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src="" alt="Foto do perfil" />
+                      <AvatarFallback className="bg-primary/10 text-primary">JD</AvatarFallback>
+                    </Avatar>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>João da Silva • OAB/SP 123456</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           )}
         </div>
         
-        <nav className="flex-1 px-2 py-4 space-y-1">
+        <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <NavItem
               key={item.href}

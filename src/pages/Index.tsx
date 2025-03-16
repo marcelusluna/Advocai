@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const Index: React.FC = () => {
   const [dateRange, setDateRange] = useState("last7Days");
@@ -30,22 +31,41 @@ const Index: React.FC = () => {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Select value={dateRange} onValueChange={setDateRange}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Selecionar período" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="today">Hoje</SelectItem>
-                  <SelectItem value="yesterday">Ontem</SelectItem>
-                  <SelectItem value="last7Days">Últimos 7 dias</SelectItem>
-                  <SelectItem value="last30Days">Últimos 30 dias</SelectItem>
-                  <SelectItem value="thisMonth">Este mês</SelectItem>
-                  <SelectItem value="lastMonth">Mês passado</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline" size="icon">
-                <Filter className="h-4 w-4" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Select value={dateRange} onValueChange={setDateRange}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Selecionar período" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="today">Hoje</SelectItem>
+                        <SelectItem value="yesterday">Ontem</SelectItem>
+                        <SelectItem value="last7Days">Últimos 7 dias</SelectItem>
+                        <SelectItem value="last30Days">Últimos 30 dias</SelectItem>
+                        <SelectItem value="thisMonth">Este mês</SelectItem>
+                        <SelectItem value="lastMonth">Mês passado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Filtrar dados por período</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <Filter className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Filtros avançados</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
 
@@ -91,23 +111,52 @@ const Index: React.FC = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <CardTitle className="text-lg">Análise de Processos</CardTitle>
                     <div className="flex flex-wrap items-center gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Filter className="h-4 w-4 mr-2" />
-                        Filtrar
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Adicionar
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Filter className="h-4 w-4 mr-2" />
+                              Filtrar
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Filtrar dados do gráfico</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Plus className="h-4 w-4 mr-2" />
+                              Adicionar
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Adicionar novo item ao gráfico</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Mais opções</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <Tabs defaultValue="processos" className="w-full">
-                    <TabsList className="mb-4 flex flex-wrap">
+                    <TabsList className="mb-4 flex-wrap">
                       <TabsTrigger value="processos">Processos</TabsTrigger>
                       <TabsTrigger value="faturamento">Faturamento</TabsTrigger>
                       <TabsTrigger value="tipos">Tipos de Processos</TabsTrigger>
@@ -137,16 +186,35 @@ const Index: React.FC = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <CardTitle className="text-lg">Processos Recentes</CardTitle>
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm">
-                        Ver todos
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              Ver todos
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Visualizar todos os processos</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Mais opções</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="pt-4">
+                <CardContent className="pt-4 max-h-[350px] overflow-y-auto">
                   <RecentCases />
                 </CardContent>
               </Card>
@@ -157,17 +225,36 @@ const Index: React.FC = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <CardTitle className="text-lg">Próximas Tarefas</CardTitle>
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Clock className="h-4 w-4 mr-2" />
-                        Adicionar Tarefa
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Clock className="h-4 w-4 mr-2" />
+                              Adicionar Tarefa
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Criar nova tarefa no calendário</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Mais opções</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="pt-4">
+                <CardContent className="pt-4 max-h-[350px] overflow-y-auto">
                   <UpcomingTasks />
                 </CardContent>
               </Card>
@@ -180,9 +267,18 @@ const Index: React.FC = () => {
                 <CardHeader className="pb-2">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <CardTitle className="text-lg">Notificações</CardTitle>
-                    <Button variant="ghost" size="sm">
-                      Marcar como lidas
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            Marcar como lidas
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Marcar todas notificações como lidas</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </CardHeader>
                 <CardContent className="pt-4 max-h-[420px] overflow-y-auto">
@@ -196,13 +292,32 @@ const Index: React.FC = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <CardTitle className="text-lg">Clientes Recentes</CardTitle>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Button variant="ghost" size="sm">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Novo Cliente
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Plus className="h-4 w-4 mr-2" />
+                              Novo Cliente
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Cadastrar novo cliente</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Mais opções</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </div>
                 </CardHeader>
