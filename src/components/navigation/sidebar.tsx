@@ -9,10 +9,22 @@ import {
   DollarSign,
   Home,
   Menu,
-  X
+  X,
+  User,
+  Settings,
+  Building
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { navItems } from "./sidebar-data";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface NavItemProps {
   icon: React.ElementType;
@@ -65,14 +77,9 @@ const Sidebar: React.FC = () => {
     >
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between p-4 border-b border-border">
-          {!isCollapsed && (
-            <h1 className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 animate-fade-in">
-              AdvocCase
-            </h1>
-          )}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1 rounded-md hover:bg-sidebar-accent transition-colors"
+            className="p-1 rounded-md hover:bg-sidebar-accent transition-colors mx-auto"
             aria-label={isCollapsed ? "Expandir menu" : "Colapsar menu"}
           >
             {isCollapsed ? (
@@ -81,6 +88,57 @@ const Sidebar: React.FC = () => {
               <X className="h-5 w-5 text-sidebar-foreground" />
             )}
           </button>
+        </div>
+        
+        {/* User Profile Section */}
+        <div className="px-3 py-4 border-b border-border">
+          {!isCollapsed ? (
+            <div className="flex flex-col items-center space-y-3">
+              <Avatar className="h-16 w-16">
+                <AvatarImage src="" alt="Foto do perfil" />
+                <AvatarFallback className="bg-primary/10 text-primary text-lg">JD</AvatarFallback>
+              </Avatar>
+              <div className="text-center">
+                <h3 className="font-medium">João da Silva</h3>
+                <p className="text-xs text-muted-foreground">Advogado(a) • OAB/SP 123456</p>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full">
+                    Perfil e Escritório
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-56">
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Meu Perfil</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/office" className="flex items-center">
+                      <Building className="mr-2 h-4 w-4" />
+                      <span>Meu Escritório</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="flex items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Configurações</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src="" alt="Foto do perfil" />
+                <AvatarFallback className="bg-primary/10 text-primary">JD</AvatarFallback>
+              </Avatar>
+            </div>
+          )}
         </div>
         
         <nav className="flex-1 px-2 py-4 space-y-1">
@@ -99,8 +157,6 @@ const Sidebar: React.FC = () => {
         <div className="mt-auto p-4 border-t border-border">
           {!isCollapsed && (
             <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground animate-fade-in">
-              <span>AdvocCase</span>
-              <span>•</span>
               <span>v1.0</span>
             </div>
           )}
