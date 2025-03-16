@@ -22,7 +22,7 @@ const Index: React.FC = () => {
       <div className="py-6">
         <Container>
           {/* Header with Page Title and Date Selector */}
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold tracking-tight mb-1">Home</h1>
               <p className="text-muted-foreground">
@@ -50,7 +50,7 @@ const Index: React.FC = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatsCard 
               title="Clientes Ativos" 
               value="124" 
@@ -84,13 +84,13 @@ const Index: React.FC = () => {
           {/* Main Content Area */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {/* Left Column - 2/3 width */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-8">
               {/* Chart Section with Tabs */}
-              <Card>
-                <CardHeader className="pb-0">
-                  <div className="flex items-center justify-between">
+              <Card className="overflow-hidden">
+                <CardHeader className="pb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <CardTitle className="text-lg">Análise de Processos</CardTitle>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Button variant="ghost" size="sm">
                         <Filter className="h-4 w-4 mr-2" />
                         Filtrar
@@ -107,23 +107,23 @@ const Index: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <Tabs defaultValue="processos" className="w-full">
-                    <TabsList className="mb-4">
+                    <TabsList className="mb-4 flex flex-wrap">
                       <TabsTrigger value="processos">Processos</TabsTrigger>
                       <TabsTrigger value="faturamento">Faturamento</TabsTrigger>
                       <TabsTrigger value="tipos">Tipos de Processos</TabsTrigger>
                     </TabsList>
                     <TabsContent value="processos" className="mt-0">
-                      <div className="h-[300px]">
+                      <div className="h-[300px] w-full">
                         <DashboardCharts />
                       </div>
                     </TabsContent>
                     <TabsContent value="faturamento" className="mt-0">
-                      <div className="h-[300px]">
+                      <div className="h-[300px] w-full">
                         <DashboardCharts />
                       </div>
                     </TabsContent>
                     <TabsContent value="tipos" className="mt-0">
-                      <div className="h-[300px]">
+                      <div className="h-[300px] w-full">
                         <DashboardCharts />
                       </div>
                     </TabsContent>
@@ -133,8 +133,8 @@ const Index: React.FC = () => {
 
               {/* Recent Cases */}
               <Card>
-                <CardHeader className="pb-0">
-                  <div className="flex items-center justify-between">
+                <CardHeader className="pb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <CardTitle className="text-lg">Processos Recentes</CardTitle>
                     <div className="flex items-center gap-2">
                       <Button variant="ghost" size="sm">
@@ -146,15 +146,15 @@ const Index: React.FC = () => {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-4">
                   <RecentCases />
                 </CardContent>
               </Card>
 
               {/* Upcoming Tasks */}
               <Card>
-                <CardHeader className="pb-0">
-                  <div className="flex items-center justify-between">
+                <CardHeader className="pb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <CardTitle className="text-lg">Próximas Tarefas</CardTitle>
                     <div className="flex items-center gap-2">
                       <Button variant="ghost" size="sm">
@@ -167,35 +167,35 @@ const Index: React.FC = () => {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-4">
                   <UpcomingTasks />
                 </CardContent>
               </Card>
             </div>
 
             {/* Right Column - 1/3 width */}
-            <div className="space-y-6">
+            <div className="space-y-8">
               {/* Notifications */}
               <Card>
-                <CardHeader className="pb-0">
-                  <div className="flex items-center justify-between">
+                <CardHeader className="pb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <CardTitle className="text-lg">Notificações</CardTitle>
                     <Button variant="ghost" size="sm">
                       Marcar como lidas
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-4 max-h-[420px] overflow-y-auto">
                   <NotificationsPanel />
                 </CardContent>
               </Card>
 
               {/* Recent Clients */}
               <Card>
-                <CardHeader className="pb-0">
-                  <div className="flex items-center justify-between">
+                <CardHeader className="pb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <CardTitle className="text-lg">Clientes Recentes</CardTitle>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Button variant="ghost" size="sm">
                         <Plus className="h-4 w-4 mr-2" />
                         Novo Cliente
@@ -206,7 +206,7 @@ const Index: React.FC = () => {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-4 max-h-[320px] overflow-y-auto">
                   <RecentClients />
                 </CardContent>
               </Card>
