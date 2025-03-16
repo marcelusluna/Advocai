@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Users, Briefcase, FileText, DollarSign, Plus, Filter, MoreHorizontal, Clock } from "lucide-react";
 import MainLayout from "@/layouts/main-layout";
@@ -105,7 +104,7 @@ const Index: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {/* Left Column - 2/3 width */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Chart Section with Tabs */}
+              {/* Chart Section */}
               <Card className="overflow-hidden">
                 <CardHeader className="pb-2">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -155,28 +154,9 @@ const Index: React.FC = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <Tabs defaultValue="processos" className="w-full">
-                    <TabsList className="mb-4 flex-wrap">
-                      <TabsTrigger value="processos">Processos</TabsTrigger>
-                      <TabsTrigger value="faturamento">Faturamento</TabsTrigger>
-                      <TabsTrigger value="tipos">Tipos de Processos</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="processos" className="mt-0">
-                      <div className="h-[300px] w-full">
-                        <DashboardCharts />
-                      </div>
-                    </TabsContent>
-                    <TabsContent value="faturamento" className="mt-0">
-                      <div className="h-[300px] w-full">
-                        <DashboardCharts />
-                      </div>
-                    </TabsContent>
-                    <TabsContent value="tipos" className="mt-0">
-                      <div className="h-[300px] w-full">
-                        <DashboardCharts />
-                      </div>
-                    </TabsContent>
-                  </Tabs>
+                  <div className="w-full">
+                    <DashboardCharts />
+                  </div>
                 </CardContent>
               </Card>
 

@@ -90,92 +90,90 @@ const chartConfig = {
 
 const DashboardCharts: React.FC = () => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-      <Card className="animate-fade-in">
+    <div className="grid grid-cols-1 gap-6">
+      {/* Gráfico de Processos */}
+      <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-lg">Processos Abertos por Mês</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80">
-            <ChartContainer config={chartConfig}>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={processosData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
+                <Tooltip formatter={(value) => [`${value} processos`, "Quantidade"]} />
                 <Legend 
-                  content={<ChartLegendContent />} 
-                  verticalAlign="bottom" 
+                  verticalAlign="top"
                   height={36}
+                  wrapperStyle={{ paddingTop: "10px" }}
                 />
                 <Bar 
                   dataKey="processos" 
                   name="Processos" 
-                  fill="var(--color-processos)" 
+                  fill="#8884d8" 
                   radius={[4, 4, 0, 0]} 
                 />
               </BarChart>
-            </ChartContainer>
+            </ResponsiveContainer>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="animate-fade-in delay-100">
+      {/* Gráfico de Faturamento */}
+      <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-lg">Faturamento Mensal (R$)</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80">
-            <ChartContainer config={chartConfig}>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={faturamentoData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
-                <ChartTooltip 
-                  content={<ChartTooltipContent 
-                    formatter={(value: number) => [`R$ ${value.toLocaleString()}`, "Valor"]} 
-                  />} 
-                />
+                <Tooltip formatter={(value) => [`R$ ${value.toLocaleString()}`, "Valor"]} />
                 <Legend 
-                  content={<ChartLegendContent />} 
-                  verticalAlign="bottom" 
+                  verticalAlign="top"
                   height={36}
+                  wrapperStyle={{ paddingTop: "10px" }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="valor" 
                   name="Faturamento" 
-                  stroke="var(--color-valor)" 
+                  stroke="#82ca9d" 
                   strokeWidth={2} 
                   activeDot={{ r: 8 }} 
                 />
               </LineChart>
-            </ChartContainer>
+            </ResponsiveContainer>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="animate-fade-in delay-200 lg:col-span-2">
+      {/* Gráfico de Tipos de Processos */}
+      <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-lg">Distribuição por Tipo de Processo</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-72 flex items-center justify-center">
-            <ChartContainer config={chartConfig}>
-              <PieChart margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+          <div className="h-[350px] w-full flex items-center justify-center">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                 <Pie
                   data={tiposProcessosData}
                   cx="50%"
                   cy="50%"
-                  outerRadius={100}
+                  outerRadius={120}
                   innerRadius={60}
-                  fill="#8884d8"
                   dataKey="value"
                   nameKey="name"
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
@@ -188,30 +186,15 @@ const DashboardCharts: React.FC = () => {
                     />
                   ))}
                 </Pie>
-                <ChartTooltip 
-                  content={<ChartTooltipContent 
-                    formatter={(value: number) => [`${value} processos`, "Quantidade"]} 
-                  />} 
-                />
-                <Legend
-                  content={(props) => (
-                    <div className="mt-4 flex flex-wrap justify-center gap-4">
-                      {props.payload?.map((entry, index) => (
-                        <div key={`legend-${index}`} className="flex items-center gap-2">
-                          <div
-                            className="h-3 w-3 rounded-sm"
-                            style={{ backgroundColor: entry.color }}
-                          />
-                          <span className="text-xs">{entry.value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                <Tooltip formatter={(value) => [`${value} processos`, "Quantidade"]} />
+                <Legend 
+                  layout="horizontal"
                   verticalAlign="bottom"
-                  height={48}
+                  align="center"
+                  wrapperStyle={{ paddingTop: "20px" }}
                 />
               </PieChart>
-            </ChartContainer>
+            </ResponsiveContainer>
           </div>
         </CardContent>
       </Card>
