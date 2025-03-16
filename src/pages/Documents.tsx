@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import MainLayout from "@/layouts/main-layout";
 import Container from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
@@ -16,9 +16,12 @@ import {
   FileCheck, 
   Edit, 
   Trash2, 
-  Filter
+  Filter,
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import DocumentGenerator from "@/components/documents/document-generator";
+import { useToast } from "@/components/ui/use-toast";
 
 // Dados fictícios de documentos
 const documentsData = [
@@ -96,6 +99,48 @@ const getStatusColor = (status: string) => {
 };
 
 const Documents: React.FC = () => {
+  const [activeTab, setActiveTab] = useState("documentos");
+  const [documents, setDocuments] = useState(documentsData);
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState("todos");
+  const [searchTerm, setSearchTerm] = useState("");
+  const { toast } = useToast();
+
+  const handleAddDocument = (newDocument: any) => {
+    setDocuments([newDocument, ...documents]);
+    setActiveTab("documentos");
+    toast({
+      title: "Documento criado",
+      description: `"${newDocument.name}" foi adicionado à biblioteca com sucesso.`
+    });
+  };
+
+  const handleDeleteDocument = (id: string) => {
+    setDocuments(documents.filter(doc => doc.id !== id));
+    toast({
+      title: "Documento excluído",
+      description: "O documento foi removido da biblioteca com sucesso."
+    });
+  };
+
+  const handleFilterDocuments = (type: string) => {
+    setSelectedTypeFilter(type);
+  };
+
+  const filteredDocuments = documents.filter(doc => {
+    // Aplicar filtro de tipo
+    if (selectedTypeFilter !== "todos" && doc.type.toLowerCase() !== selectedTypeFilter) {
+      return false;
+    }
+    
+    // Aplicar busca
+    if (searchTerm) {
+      return doc.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+             doc.relatedTo.toLowerCase().includes(searchTerm.toLowerCase());
+    }
+    
+    return true;
+  });
+
   return (
     <MainLayout>
       <div className="py-8 animate-fade-in">
@@ -108,187 +153,224 @@ const Documents: React.FC = () => {
               </p>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline">
+              <Button 
+                variant="outline"
+                onClick={() => handleFilterDocuments(selectedTypeFilter === "todos" ? "petição" : "todos")}
+              >
                 <Filter className="h-4 w-4 mr-2" />
-                Filtrar
+                {selectedTypeFilter === "todos" ? "Filtrar Petições" : "Mostrar Todos"}
               </Button>
-              <Button>
+              <Button onClick={() => setActiveTab("gerador")}>
                 <FilePlus className="h-4 w-4 mr-2" />
                 Novo Documento
               </Button>
             </div>
           </div>
           
-          <Card className="mb-6">
-            <CardHeader className="pb-3">
-              <CardTitle>Todos os Documentos</CardTitle>
-              <CardDescription>
-                Biblioteca de documentos e peças processuais
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="todos">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="todos">Todos</TabsTrigger>
-                  <TabsTrigger value="peticoes">Petições</TabsTrigger>
-                  <TabsTrigger value="contratos">Contratos</TabsTrigger>
-                  <TabsTrigger value="recursos">Recursos</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="todos" className="space-y-4">
-                  <div className="relative w-full mb-4">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <input
-                      type="text"
-                      placeholder="Buscar documento..."
-                      className="pl-10 pr-4 py-2 w-full rounded-md border border-input bg-background"
-                    />
-                  </div>
-                  
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nome</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Relacionado a</TableHead>
-                        <TableHead>Criado em</TableHead>
-                        <TableHead>Modificado em</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Criado por</TableHead>
-                        <TableHead className="text-right">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {documentsData.map((doc) => (
-                        <TableRow key={doc.id}>
-                          <TableCell className="font-medium">{doc.name}</TableCell>
-                          <TableCell>{doc.type}</TableCell>
-                          <TableCell>{doc.relatedTo}</TableCell>
-                          <TableCell>{doc.createdAt}</TableCell>
-                          <TableCell>{doc.modifiedAt}</TableCell>
-                          <TableCell>
-                            <span className={cn(
-                              "text-xs px-2 py-1 rounded-full border",
-                              getStatusColor(doc.status)
-                            )}>
-                              {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
-                            </span>
-                          </TableCell>
-                          <TableCell>{doc.createdBy}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <Button variant="ghost" size="icon" title="Editar">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" title="Download">
-                                <Download className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" title="Compartilhar">
-                                <Share2 className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" title="Excluir">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TabsContent>
-                
-                <TabsContent value="peticoes">
-                  <div className="flex justify-center items-center p-12">
-                    <p className="text-muted-foreground">
-                      Filtragem por petições
-                    </p>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="contratos">
-                  <div className="flex justify-center items-center p-12">
-                    <p className="text-muted-foreground">
-                      Filtragem por contratos
-                    </p>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="recursos">
-                  <div className="flex justify-center items-center p-12">
-                    <p className="text-muted-foreground">
-                      Filtragem por recursos
-                    </p>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Templates Disponíveis</CardTitle>
-                <CardDescription>
-                  Modelos prontos para criar novos documentos
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {templateData.map((template) => (
-                    <div key={template.id} className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-md">
-                      <div className="flex items-start gap-3">
-                        <File className="h-5 w-5 text-primary mt-0.5" />
-                        <div>
-                          <p className="font-medium">{template.name}</p>
-                          <p className="text-sm text-muted-foreground">{template.category}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">
-                          Usado {template.usageCount} vezes
-                        </span>
-                        <Button variant="outline" size="sm">Usar</Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-6">
+              <TabsTrigger value="documentos">Biblioteca de Documentos</TabsTrigger>
+              <TabsTrigger value="gerador" className="flex items-center">
+                <Sparkles className="mr-2 h-4 w-4" />
+                Gerador de Documentos
+              </TabsTrigger>
+            </TabsList>
             
-            <Card>
-              <CardHeader>
-                <CardTitle>Documentos Recentes</CardTitle>
-                <CardDescription>
-                  Últimos documentos editados ou criados
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {documentsData.slice(0, 3).map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-md">
-                      <div className="flex items-start gap-3">
-                        {doc.status === "finalizado" ? (
-                          <FileCheck className="h-5 w-5 text-green-600 mt-0.5" />
-                        ) : (
-                          <FileText className="h-5 w-5 text-primary mt-0.5" />
-                        )}
-                        <div>
-                          <p className="font-medium">{doc.name}</p>
-                          <p className="text-sm text-muted-foreground">Modificado em {doc.modifiedAt}</p>
-                        </div>
-                      </div>
-                      <Button variant="outline" size="sm">Abrir</Button>
+            <TabsContent value="documentos">
+              <Card className="mb-6">
+                <CardHeader className="pb-3">
+                  <CardTitle>Todos os Documentos</CardTitle>
+                  <CardDescription>
+                    Biblioteca de documentos e peças processuais
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="todos" onValueChange={handleFilterDocuments}>
+                    <TabsList className="mb-4">
+                      <TabsTrigger value="todos">Todos</TabsTrigger>
+                      <TabsTrigger value="petição">Petições</TabsTrigger>
+                      <TabsTrigger value="contrato">Contratos</TabsTrigger>
+                      <TabsTrigger value="recurso">Recursos</TabsTrigger>
+                    </TabsList>
+                    
+                    <div className="relative w-full mb-4">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <input
+                        type="text"
+                        placeholder="Buscar documento..."
+                        className="pl-10 pr-4 py-2 w-full rounded-md border border-input bg-background"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
                     </div>
-                  ))}
-                </div>
+                    
+                    {filteredDocuments.length > 0 ? (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Nome</TableHead>
+                            <TableHead>Tipo</TableHead>
+                            <TableHead>Relacionado a</TableHead>
+                            <TableHead>Criado em</TableHead>
+                            <TableHead>Modificado em</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Criado por</TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredDocuments.map((doc) => (
+                            <TableRow key={doc.id}>
+                              <TableCell className="font-medium">{doc.name}</TableCell>
+                              <TableCell>{doc.type}</TableCell>
+                              <TableCell>{doc.relatedTo}</TableCell>
+                              <TableCell>{doc.createdAt}</TableCell>
+                              <TableCell>{doc.modifiedAt}</TableCell>
+                              <TableCell>
+                                <span className={cn(
+                                  "text-xs px-2 py-1 rounded-full border",
+                                  getStatusColor(doc.status)
+                                )}>
+                                  {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
+                                </span>
+                              </TableCell>
+                              <TableCell>{doc.createdBy}</TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex items-center justify-end gap-1">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    title="Editar"
+                                    onClick={() => setActiveTab("gerador")}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" title="Download">
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" title="Compartilhar">
+                                    <Share2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    title="Excluir"
+                                    onClick={() => handleDeleteDocument(doc.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center p-8 text-center">
+                        <FileText className="h-12 w-12 text-muted-foreground mb-4 opacity-40" />
+                        <h3 className="text-lg font-medium mb-1">Nenhum documento encontrado</h3>
+                        <p className="text-muted-foreground mb-4">
+                          {searchTerm 
+                            ? "Nenhum documento corresponde à sua busca. Tente outros termos." 
+                            : "Não há documentos para exibir com estes filtros."}
+                        </p>
+                        <Button onClick={() => setActiveTab("gerador")}>
+                          <FilePlus className="h-4 w-4 mr-2" />
+                          Criar Novo Documento
+                        </Button>
+                      </div>
+                    )}
+                  </Tabs>
+                </CardContent>
+              </Card>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Templates Disponíveis</CardTitle>
+                    <CardDescription>
+                      Modelos prontos para criar novos documentos
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {templateData.map((template) => (
+                        <div key={template.id} className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-md">
+                          <div className="flex items-start gap-3">
+                            <File className="h-5 w-5 text-primary mt-0.5" />
+                            <div>
+                              <p className="font-medium">{template.name}</p>
+                              <p className="text-sm text-muted-foreground">{template.category}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">
+                              Usado {template.usageCount} vezes
+                            </span>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setActiveTab("gerador")}
+                            >
+                              Usar
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
                 
-                <Button variant="outline" className="w-full mt-4">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Ver Todos os Documentos Recentes
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Documentos Recentes</CardTitle>
+                    <CardDescription>
+                      Últimos documentos editados ou criados
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {documents.slice(0, 3).map((doc) => (
+                        <div key={doc.id} className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-md">
+                          <div className="flex items-start gap-3">
+                            {doc.status === "finalizado" ? (
+                              <FileCheck className="h-5 w-5 text-green-600 mt-0.5" />
+                            ) : (
+                              <FileText className="h-5 w-5 text-primary mt-0.5" />
+                            )}
+                            <div>
+                              <p className="font-medium">{doc.name}</p>
+                              <p className="text-sm text-muted-foreground">Modificado em {doc.modifiedAt}</p>
+                            </div>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setActiveTab("gerador")}
+                          >
+                            Abrir
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full mt-4"
+                      onClick={() => setActiveTab("documentos")}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Ver Todos os Documentos Recentes
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="gerador">
+              <DocumentGenerator onDocumentGenerated={handleAddDocument} />
+            </TabsContent>
+          </Tabs>
         </Container>
       </div>
     </MainLayout>

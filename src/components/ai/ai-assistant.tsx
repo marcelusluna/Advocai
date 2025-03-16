@@ -57,11 +57,17 @@ const AiAssistant: React.FC = () => {
     } else if (lowerQuery.includes("cliente") || lowerQuery.includes("cadastro")) {
       response = "Na seção 'Clientes', você pode cadastrar e gerenciar todas as informações de seus clientes, incluindo histórico de contratações e documentos.";
     } else if (lowerQuery.includes("documento") || lowerQuery.includes("contrato")) {
-      response = "Para gerenciar documentos e contratos, utilize as seções específicas no menu lateral. Você pode criar, editar e assinar documentos diretamente na plataforma.";
+      response = "Para gerenciar documentos e contratos, utilize as seções específicas no menu lateral. Você pode criar, editar e assinar documentos diretamente na plataforma. Temos também um gerador de documentos baseado em IA na seção 'Documentos'.";
     } else if (lowerQuery.includes("honorário") || lowerQuery.includes("pagamento") || lowerQuery.includes("cobrança")) {
       response = "A gestão de honorários é feita na seção 'Honorários'. Você pode configurar valores, gerar cobranças e acompanhar pagamentos de seus clientes.";
     } else if (lowerQuery.includes("prazo") || lowerQuery.includes("data")) {
       response = "Para não perder prazos importantes, utilize o calendário na seção 'Dashboard' ou a gestão de tarefas em cada processo específico.";
+    } else if (lowerQuery.includes("petição") || lowerQuery.includes("gerar documento")) {
+      response = "Para criar uma nova petição ou qualquer documento jurídico, acesse a seção 'Documentos' e clique em 'Gerador de Documentos'. Lá você pode utilizar nossos modelos pré-definidos ou a IA para criar documentos personalizados.";
+    } else if (lowerQuery.includes("modelo") || lowerQuery.includes("template")) {
+      response = "Temos vários modelos de documentos disponíveis no sistema. Acesse a seção 'Documentos' para ver todos os templates disponíveis e usá-los para criar novos documentos.";
+    } else if (lowerQuery.includes("gerar") || lowerQuery.includes("criar com ia")) {
+      response = "Para gerar conteúdo com IA, acesse o 'Gerador de Documentos' na seção 'Documentos'. Lá você pode fornecer instruções para a IA criar petições, contratos e outros documentos jurídicos personalizados.";
     } else if (lowerQuery.includes("ajuda") || lowerQuery.includes("tutorial")) {
       response = "Estou aqui para ajudar! Posso tirar dúvidas sobre qualquer funcionalidade do AdvocCase. Basta me perguntar sobre clientes, processos, documentos, contratos ou honorários.";
     }
@@ -91,7 +97,7 @@ const AiAssistant: React.FC = () => {
       {/* Painel do assistente */}
       <div
         className={cn(
-          "fixed bottom-24 right-6 w-80 md:w-96 bg-card rounded-lg border border-border shadow-lg transition-all duration-300 ease-in-out",
+          "fixed bottom-24 right-6 w-80 md:w-96 bg-card rounded-lg border border-border shadow-lg transition-all duration-300 ease-in-out z-50",
           isOpen ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0 pointer-events-none"
         )}
       >
