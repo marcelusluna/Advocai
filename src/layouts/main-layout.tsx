@@ -25,6 +25,7 @@ export type DialogConfig = {
   }>;
   submitLabel: string;
   entityType: 'client' | 'case' | 'contract' | 'document' | 'invoice';
+  onSubmit?: (formData: Record<string, string>) => void;
 };
 
 // Este contexto permite que qualquer componente filho acesse e manipule o diálogo
@@ -80,7 +81,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       return;
     }
 
-    // Exibir mensagem de sucesso e redirecionar para a página apropriada
+    // Se existir uma função de callback onSubmit, chamá-la com os dados do formulário
+    if (dialogConfig.onSubmit) {
+      dialogConfig.onSubmit(formData);
+      return;
+    }
+
+    // Comportamento padrão (caso não haja callback)
     const entityLabels = {
       client: "Cliente",
       case: "Processo",

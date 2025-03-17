@@ -81,7 +81,7 @@ const getStatusColor = (status: string) => {
 };
 
 const Clients: React.FC = () => {
-  const { openDialog } = useContext(CreateEntityContext);
+  const { openDialog, closeDialog } = useContext(CreateEntityContext);
   const { toast } = useToast();
   const [clients, setClients] = useState(clientsData);
   const [searchTerm, setSearchTerm] = useState("");
@@ -103,32 +103,43 @@ const Clients: React.FC = () => {
             { value: "Pessoa Jurídica", label: "Pessoa Jurídica" }
           ]
         },
+        {
+          id: "status",
+          label: "Status",
+          placeholder: "Selecione o status",
+          options: [
+            { value: "ativo", label: "Ativo" },
+            { value: "pendente", label: "Pendente" },
+            { value: "inativo", label: "Inativo" }
+          ]
+        }
       ],
       submitLabel: "Adicionar Cliente",
-      entityType: "client"
+      entityType: "client",
+      onSubmit: (formData) => {
+        // Criar um novo cliente com os dados do formulário
+        const newClient = {
+          id: (clients.length + 1).toString(),
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone || "(00) 0000-0000",
+          type: formData.type || "Pessoa Física",
+          createdAt: new Date().toLocaleDateString('pt-BR'),
+          status: formData.status || "ativo"
+        };
+        
+        // Adicionar o novo cliente ao início da lista
+        setClients(prev => [newClient, ...prev]);
+        
+        // Exibir mensagem de sucesso
+        toast({
+          title: "Cliente adicionado",
+          description: `O cliente ${formData.name} foi adicionado com sucesso`,
+        });
+        
+        closeDialog();
+      }
     });
-    
-    // Simular adição de um novo cliente quando o diálogo for fechado (para fins de demonstração)
-    // Em um cenário real, isso seria feito através de um callback ou evento emitido pelo contexto
-    setTimeout(() => {
-      const newId = (clients.length + 1).toString();
-      const newClient = {
-        id: newId,
-        name: `Novo Cliente ${newId}`,
-        email: `cliente${newId}@exemplo.com`,
-        phone: "(00) 0000-0000",
-        type: "Pessoa Física",
-        createdAt: new Date().toLocaleDateString('pt-BR'),
-        status: "ativo"
-      };
-      
-      setClients(prev => [newClient, ...prev]);
-      
-      toast({
-        title: "Cliente adicionado",
-        description: "O cliente foi adicionado com sucesso",
-      });
-    }, 500);
   };
 
   // Função para filtrar clientes com base no termo de busca
