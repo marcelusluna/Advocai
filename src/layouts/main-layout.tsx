@@ -54,6 +54,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
 
   const openDialog = (config: Omit<DialogConfig, 'isOpen'>) => {
+    console.log("Opening dialog with config:", config);
     setDialogConfig({ ...config, isOpen: true });
     setFormData({});
   };
