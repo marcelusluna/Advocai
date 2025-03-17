@@ -1,5 +1,19 @@
+
 import React, { useState } from "react";
-import { Users, Briefcase, FileText, DollarSign, Plus, Filter, MoreHorizontal, Clock } from "lucide-react";
+import { 
+  Users, 
+  Briefcase, 
+  FileText, 
+  DollarSign, 
+  Plus, 
+  Filter, 
+  MoreHorizontal, 
+  Clock,
+  ChevronDown,
+  Bell,
+  RefreshCw,
+  Search
+} from "lucide-react";
 import MainLayout from "@/layouts/main-layout";
 import Container from "@/components/ui/container";
 import StatsCard from "@/components/dashboard/stats-card";
@@ -11,65 +25,74 @@ import NotificationsPanel from "@/components/dashboard/notifications-panel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
 
 const Index: React.FC = () => {
   const [dateRange, setDateRange] = useState("last7Days");
 
   return (
     <MainLayout>
-      <div className="py-6">
-        <Container>
-          {/* Header with Page Title and Date Selector */}
-          <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight mb-1">Home</h1>
-              <p className="text-muted-foreground">
-                Bem-vindo ao seu painel de controle de advocacia
+      <div className="min-h-screen pb-10">
+        <header className="py-4 px-6 border-b border-gray-200 bg-white">
+          <div className="flex flex-col md:flex-row justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
+              <p className="text-sm text-gray-500 mt-1">
+                Bem-vindo ao seu dashboard de advocacia
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Select value={dateRange} onValueChange={setDateRange}>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Selecionar período" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="today">Hoje</SelectItem>
-                        <SelectItem value="yesterday">Ontem</SelectItem>
-                        <SelectItem value="last7Days">Últimos 7 dias</SelectItem>
-                        <SelectItem value="last30Days">Últimos 30 dias</SelectItem>
-                        <SelectItem value="thisMonth">Este mês</SelectItem>
-                        <SelectItem value="lastMonth">Mês passado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Filtrar dados por período</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+            <div className="flex items-center gap-3">
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input 
+                  placeholder="Pesquisar..." 
+                  className="pl-9 h-9 text-sm bg-gray-50 border-gray-200"
+                />
+              </div>
+              <Button variant="outline" size="sm" className="text-gray-700 border-gray-200 hover:bg-gray-100">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                <span>Atualizar</span>
+              </Button>
+              <Button variant="outline" size="icon" className="h-9 w-9 border-gray-200 text-gray-700">
+                <Bell className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        <Container className="mt-6">
+          {/* Filtros */}
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-medium text-gray-900">Visão Geral</h2>
+              <p className="text-sm text-gray-500">
+                Análise de desempenho do escritório
+              </p>
+            </div>
+            <div className="flex items-center gap-2 sm:justify-end">
+              <Select value={dateRange} onValueChange={setDateRange}>
+                <SelectTrigger className="w-[180px] h-9 text-sm bg-white border-gray-200">
+                  <SelectValue placeholder="Selecionar período" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="today">Hoje</SelectItem>
+                  <SelectItem value="yesterday">Ontem</SelectItem>
+                  <SelectItem value="last7Days">Últimos 7 dias</SelectItem>
+                  <SelectItem value="last30Days">Últimos 30 dias</SelectItem>
+                  <SelectItem value="thisMonth">Este mês</SelectItem>
+                  <SelectItem value="lastMonth">Mês passado</SelectItem>
+                </SelectContent>
+              </Select>
               
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon">
-                      <Filter className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Filtros avançados</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Button variant="outline" size="sm" className="text-gray-700 h-9 border-gray-200">
+                <Filter className="h-4 w-4 mr-2" />
+                <span>Filtros</span>
+              </Button>
             </div>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             <StatsCard 
               title="Clientes Ativos" 
               value="124" 
@@ -100,97 +123,60 @@ const Index: React.FC = () => {
             />
           </div>
 
-          {/* Main Content Area */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            {/* Left Column - 2/3 width */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Chart Section */}
-              <Card className="overflow-hidden">
-                <CardHeader className="pb-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <CardTitle className="text-lg">Análise de Processos</CardTitle>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <Filter className="h-4 w-4 mr-2" />
-                              Filtrar
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Filtrar dados do gráfico</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <Plus className="h-4 w-4 mr-2" />
-                              Adicionar
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Adicionar novo item ao gráfico</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Mais opções</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
+          {/* Charts Section */}
+          <div className="mb-6">
+            <Card className="bg-white border-gray-100 shadow-sm">
+              <CardHeader className="pb-0">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div>
+                    <CardTitle className="text-lg font-medium text-gray-900">Análise de Desempenho</CardTitle>
+                    <p className="text-sm text-gray-500 mt-1">Métricas chave do escritório</p>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="w-full">
-                    <DashboardCharts />
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" className="text-gray-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      <span>Adicionar</span>
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-700">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <DashboardCharts />
+              </CardContent>
+            </Card>
+          </div>
 
+          {/* Content Area (2 columns) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column - 2/3 width */}
+            <div className="lg:col-span-2 space-y-6">
               {/* Recent Cases */}
-              <Card>
-                <CardHeader className="pb-2">
+              <Card className="bg-white border-gray-100 shadow-sm overflow-hidden">
+                <CardHeader className="pb-0">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <CardTitle className="text-lg">Processos Recentes</CardTitle>
+                    <div>
+                      <CardTitle className="text-lg font-medium text-gray-900">Processos Recentes</CardTitle>
+                      <p className="text-sm text-gray-500 mt-1">Últimos processos adicionados</p>
+                    </div>
                     <div className="flex items-center gap-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              Ver todos
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Visualizar todos os processos</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Mais opções</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Button variant="outline" size="sm" className="text-gray-700 border-gray-200">
+                        <Plus className="h-4 w-4 mr-2" />
+                        <span>Novo Processo</span>
+                      </Button>
+                      <Select defaultValue="all">
+                        <SelectTrigger className="w-[120px] h-9 text-sm bg-white border-gray-200">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          <SelectItem value="active">Ativos</SelectItem>
+                          <SelectItem value="pending">Pendentes</SelectItem>
+                          <SelectItem value="completed">Concluídos</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </CardHeader>
@@ -200,37 +186,29 @@ const Index: React.FC = () => {
               </Card>
 
               {/* Upcoming Tasks */}
-              <Card>
-                <CardHeader className="pb-2">
+              <Card className="bg-white border-gray-100 shadow-sm">
+                <CardHeader className="pb-0">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <CardTitle className="text-lg">Próximas Tarefas</CardTitle>
+                    <div>
+                      <CardTitle className="text-lg font-medium text-gray-900">Próximas Tarefas</CardTitle>
+                      <p className="text-sm text-gray-500 mt-1">Compromissos e prazos</p>
+                    </div>
                     <div className="flex items-center gap-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <Clock className="h-4 w-4 mr-2" />
-                              Adicionar Tarefa
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Criar nova tarefa no calendário</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Mais opções</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Button variant="outline" size="sm" className="text-gray-700 border-gray-200">
+                        <Clock className="h-4 w-4 mr-2" />
+                        <span>Adicionar Tarefa</span>
+                      </Button>
+                      <Select defaultValue="week">
+                        <SelectTrigger className="w-[120px] h-9 text-sm bg-white border-gray-200">
+                          <SelectValue placeholder="Período" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="today">Hoje</SelectItem>
+                          <SelectItem value="tomorrow">Amanhã</SelectItem>
+                          <SelectItem value="week">Esta semana</SelectItem>
+                          <SelectItem value="month">Este mês</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </CardHeader>
@@ -241,64 +219,37 @@ const Index: React.FC = () => {
             </div>
 
             {/* Right Column - 1/3 width */}
-            <div className="space-y-8">
+            <div className="space-y-6">
               {/* Notifications */}
-              <Card>
-                <CardHeader className="pb-2">
+              <Card className="bg-white border-gray-100 shadow-sm">
+                <CardHeader className="pb-0">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <CardTitle className="text-lg">Notificações</CardTitle>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            Marcar como lidas
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Marcar todas notificações como lidas</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <div>
+                      <CardTitle className="text-lg font-medium text-gray-900">Notificações</CardTitle>
+                      <p className="text-sm text-gray-500 mt-1">Atualizações recentes</p>
+                    </div>
+                    <Button variant="outline" size="sm" className="text-gray-700 border-gray-200">
+                      Marcar como lidas
+                    </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="pt-4 max-h-[420px] overflow-y-auto">
+                <CardContent className="pt-4 max-h-[350px] overflow-y-auto">
                   <NotificationsPanel />
                 </CardContent>
               </Card>
 
               {/* Recent Clients */}
-              <Card>
-                <CardHeader className="pb-2">
+              <Card className="bg-white border-gray-100 shadow-sm">
+                <CardHeader className="pb-0">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <CardTitle className="text-lg">Clientes Recentes</CardTitle>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <Plus className="h-4 w-4 mr-2" />
-                              Novo Cliente
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Cadastrar novo cliente</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Mais opções</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                    <div>
+                      <CardTitle className="text-lg font-medium text-gray-900">Clientes Recentes</CardTitle>
+                      <p className="text-sm text-gray-500 mt-1">Últimos clientes cadastrados</p>
                     </div>
+                    <Button variant="outline" size="sm" className="text-gray-700 border-gray-200">
+                      <Plus className="h-4 w-4 mr-2" />
+                      <span>Novo Cliente</span>
+                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="pt-4 max-h-[320px] overflow-y-auto">

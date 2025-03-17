@@ -9,15 +9,17 @@ import {
   DollarSign,
   Home,
   Menu,
-  X,
+  ChevronLeft,
   User,
   Settings,
-  Building
+  Building,
+  Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { navItems } from "./sidebar-data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +28,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+interface SidebarProps {
+  collapsed: boolean;
+  setCollapsed: (collapsed: boolean) => void;
+}
 
 interface NavItemProps {
   icon: React.ElementType;
@@ -49,19 +56,22 @@ const NavItem: React.FC<NavItemProps> = ({
           <Link
             to={href}
             className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 group hover-lift",
+              "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 text-gray-600",
               isActive 
-                ? "bg-primary text-primary-foreground" 
-                : "text-sidebar-foreground hover:bg-sidebar-accent"
+                ? "bg-blue-50 text-blue-600" 
+                : "hover:bg-gray-100"
             )}
             aria-label={label}
           >
             <Icon className={cn(
-              "h-5 w-5 transition-all",
-              isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
+              "h-5 w-5",
+              isActive ? "text-blue-600" : "text-gray-500"
             )} />
             {!isCollapsed && (
-              <span className="text-sm font-medium transition-all animate-fade-in">
+              <span className={cn(
+                "text-sm font-medium transition-opacity",
+                isActive ? "text-blue-600" : "text-gray-600"
+              )}>
                 {label}
               </span>
             )}
@@ -77,102 +87,81 @@ const NavItem: React.FC<NavItemProps> = ({
   );
 };
 
-const Sidebar: React.FC = () => {
+const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
+  
   return (
     <div 
       className={cn(
-        "h-screen bg-sidebar sticky top-0 border-r border-border transition-all duration-300 z-10",
-        isCollapsed ? "w-16" : "w-64"
+        "h-screen bg-white border-r border-gray-200 fixed top-0 left-0 z-10 transition-all duration-300 ease-in-out",
+        collapsed ? "w-16" : "w-64"
       )}
     >
       <div className="flex flex-col h-full">
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => setIsCollapsed(!isCollapsed)}
-                  className="p-1 rounded-md hover:bg-sidebar-accent transition-colors mx-auto"
-                  aria-label={isCollapsed ? "Expandir menu" : "Colapsar menu"}
-                >
-                  {isCollapsed ? (
-                    <Menu className="h-5 w-5 text-sidebar-foreground" />
-                  ) : (
-                    <X className="h-5 w-5 text-sidebar-foreground" />
-                  )}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side={isCollapsed ? "right" : "bottom"}>
-                <p>{isCollapsed ? "Expandir menu" : "Colapsar menu"}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+          {!collapsed && (
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center">
+                <span className="text-white text-xs font-bold">AC</span>
+              </div>
+              <span className="font-semibold text-gray-900">AdvoCase</span>
+            </div>
+          )}
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className={cn(
+              "p-1.5 rounded-md hover:bg-gray-100 transition-colors",
+              collapsed ? "mx-auto" : ""
+            )}
+            aria-label={collapsed ? "Expandir menu" : "Colapsar menu"}
+          >
+            {collapsed ? (
+              <Menu className="h-5 w-5 text-gray-500" />
+            ) : (
+              <ChevronLeft className="h-5 w-5 text-gray-500" />
+            )}
+          </button>
+        </div>
+        
+        {/* Barra de pesquisa */}
+        <div className={cn(
+          "px-3 py-3 border-b border-gray-100",
+          collapsed ? "hidden" : "block"
+        )}>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input 
+              placeholder="Pesquisar..." 
+              className="pl-9 h-9 text-sm bg-gray-50 border-gray-200 focus:bg-white focus-visible:ring-blue-600 focus-visible:ring-1 focus-visible:ring-offset-0"
+            />
+          </div>
         </div>
         
         {/* User Profile Section */}
-        <div className="px-3 py-4 border-b border-border">
-          {!isCollapsed ? (
-            <div className="flex flex-col items-center space-y-3">
-              <Avatar className="h-16 w-16">
+        <div className={cn(
+          "px-3 py-4 border-b border-gray-100",
+          collapsed ? "flex justify-center" : ""
+        )}>
+          {!collapsed ? (
+            <div className="flex items-center space-x-3">
+              <Avatar className="h-9 w-9">
                 <AvatarImage src="" alt="Foto do perfil" />
-                <AvatarFallback className="bg-primary/10 text-primary text-lg">JD</AvatarFallback>
+                <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">JD</AvatarFallback>
               </Avatar>
-              <div className="text-center">
-                <h3 className="font-medium">João da Silva</h3>
-                <p className="text-xs text-muted-foreground">Advogado(a) • OAB/SP 123456</p>
+              <div className="overflow-hidden">
+                <h3 className="font-medium text-sm text-gray-800 truncate">João da Silva</h3>
+                <p className="text-xs text-gray-500 truncate">OAB/SP 123456</p>
               </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full">
-                    Perfil e Escritório
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="w-56">
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile" className="flex items-center">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Meu Perfil</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/office" className="flex items-center">
-                      <Building className="mr-2 h-4 w-4" />
-                      <span>Meu Escritório</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/settings" className="flex items-center">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Configurações</span>
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           ) : (
-            <div className="flex justify-center">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src="" alt="Foto do perfil" />
-                      <AvatarFallback className="bg-primary/10 text-primary">JD</AvatarFallback>
-                    </Avatar>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p>João da Silva • OAB/SP 123456</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
+            <Avatar className="h-9 w-9">
+              <AvatarImage src="" alt="Foto do perfil" />
+              <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">JD</AvatarFallback>
+            </Avatar>
           )}
         </div>
         
-        <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-2 py-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <NavItem
               key={item.href}
@@ -180,16 +169,55 @@ const Sidebar: React.FC = () => {
               label={item.label}
               href={item.href}
               isActive={location.pathname === item.href}
-              isCollapsed={isCollapsed}
+              isCollapsed={collapsed}
             />
           ))}
         </nav>
         
-        <div className="mt-auto p-4 border-t border-border">
-          {!isCollapsed && (
-            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground animate-fade-in">
-              <span>v1.0</span>
-            </div>
+        <div className="mt-auto p-3 border-t border-gray-100">
+          {!collapsed ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="w-full justify-start text-sm text-gray-600 border-gray-200 hover:bg-gray-100 hover:text-gray-700 hover:border-gray-300">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Configurações</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem asChild>
+                  <Link to="/profile" className="flex items-center">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Meu Perfil</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/office" className="flex items-center">
+                    <Building className="mr-2 h-4 w-4" />
+                    <span>Meu Escritório</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/settings" className="flex items-center">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Preferências</span>
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="w-9 h-9 mx-auto">
+                    <Settings className="h-5 w-5 text-gray-500" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Configurações</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
       </div>

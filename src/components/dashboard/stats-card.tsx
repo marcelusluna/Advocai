@@ -1,6 +1,8 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
+import { ArrowUp, ArrowDown } from "lucide-react";
 
 interface StatsCardProps {
   title: string;
@@ -23,34 +25,39 @@ const StatsCard: React.FC<StatsCardProps> = ({
   className
 }) => {
   return (
-    <div className={cn(
-      "bg-card text-card-foreground rounded-lg border border-border p-6 shadow-sm hover-lift animate-scale-in",
+    <Card className={cn(
+      "bg-white text-card-foreground rounded-lg border border-gray-100 p-4 shadow-sm hover:shadow-md transition-shadow duration-200",
       className
     )}>
       <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
-          <h3 className="text-2xl font-bold tracking-tight">{value}</h3>
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-gray-500">{title}</p>
+          <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{value}</h3>
           {description && (
-            <p className="text-xs text-muted-foreground mt-1">{description}</p>
+            <p className="text-xs text-gray-500">{description}</p>
           )}
           {trend && (
-            <div className="flex items-center mt-2">
+            <div className="flex items-center mt-1">
               <span className={cn(
-                "text-xs font-medium",
+                "text-xs font-medium flex items-center",
                 trend.isPositive ? "text-green-500" : "text-red-500"
               )}>
-                {trend.isPositive ? "+" : "-"}{Math.abs(trend.value)}%
+                {trend.isPositive ? (
+                  <ArrowUp className="h-3 w-3 mr-1" />
+                ) : (
+                  <ArrowDown className="h-3 w-3 mr-1" />
+                )}
+                {Math.abs(trend.value)}%
               </span>
-              <span className="text-xs text-muted-foreground ml-1">em relação ao mês anterior</span>
+              <span className="text-xs text-gray-500 ml-1">vs mês anterior</span>
             </div>
           )}
         </div>
-        <div className="bg-primary/10 p-2 rounded-full">
-          <Icon className="h-5 w-5 text-primary" />
+        <div className="bg-gray-50 p-2 rounded-full">
+          <Icon className="h-5 w-5 text-gray-500" />
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 
