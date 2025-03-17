@@ -1,4 +1,5 @@
-import React, { useContext } from "react";
+
+import React, { useContext, useState } from "react";
 import MainLayout, { CreateEntityContext } from "@/layouts/main-layout";
 import Container from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Filter, Search, UserPlus, Download, Mail, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 const clientsData = [
   {
@@ -80,6 +82,9 @@ const getStatusColor = (status: string) => {
 
 const Clients: React.FC = () => {
   const { openDialog } = useContext(CreateEntityContext);
+  const { toast } = useToast();
+  const [clients, setClients] = useState(clientsData);
+  const [searchTerm, setSearchTerm] = useState("");
   
   const handleNewClient = () => {
     openDialog({
@@ -102,7 +107,42 @@ const Clients: React.FC = () => {
       submitLabel: "Adicionar Cliente",
       entityType: "client"
     });
+    
+    // Simular adição de um novo cliente quando o diálogo for fechado (para fins de demonstração)
+    // Em um cenário real, isso seria feito através de um callback ou evento emitido pelo contexto
+    setTimeout(() => {
+      const newId = (clients.length + 1).toString();
+      const newClient = {
+        id: newId,
+        name: `Novo Cliente ${newId}`,
+        email: `cliente${newId}@exemplo.com`,
+        phone: "(00) 0000-0000",
+        type: "Pessoa Física",
+        createdAt: new Date().toLocaleDateString('pt-BR'),
+        status: "ativo"
+      };
+      
+      setClients(prev => [newClient, ...prev]);
+      
+      toast({
+        title: "Cliente adicionado",
+        description: "O cliente foi adicionado com sucesso",
+      });
+    }, 500);
   };
+
+  // Função para filtrar clientes com base no termo de busca
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+  };
+
+  // Filtrar clientes baseado no termo de busca
+  const filteredClients = clients.filter(client => 
+    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.phone.includes(searchTerm)
+  );
 
   return (
     <MainLayout>
@@ -156,6 +196,8 @@ const Clients: React.FC = () => {
                       type="text"
                       placeholder="Buscar cliente..."
                       className="pl-10 pr-4 py-2 w-full rounded-md border border-input bg-background"
+                      value={searchTerm}
+                      onChange={handleSearch}
                     />
                   </div>
                   
@@ -172,33 +214,41 @@ const Clients: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {clientsData.map((client) => (
-                        <TableRow key={client.id}>
-                          <TableCell className="font-medium">{client.name}</TableCell>
-                          <TableCell>{client.email}</TableCell>
-                          <TableCell>{client.phone}</TableCell>
-                          <TableCell>{client.type}</TableCell>
-                          <TableCell>{client.createdAt}</TableCell>
-                          <TableCell>
-                            <span className={cn(
-                              "text-xs px-2 py-1 rounded-full border",
-                              getStatusColor(client.status)
-                            )}>
-                              {client.status.charAt(0).toUpperCase() + client.status.slice(1)}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <Button variant="ghost" size="icon">
-                                <Mail className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </div>
+                      {filteredClients.length > 0 ? (
+                        filteredClients.map((client) => (
+                          <TableRow key={client.id}>
+                            <TableCell className="font-medium">{client.name}</TableCell>
+                            <TableCell>{client.email}</TableCell>
+                            <TableCell>{client.phone}</TableCell>
+                            <TableCell>{client.type}</TableCell>
+                            <TableCell>{client.createdAt}</TableCell>
+                            <TableCell>
+                              <span className={cn(
+                                "text-xs px-2 py-1 rounded-full border",
+                                getStatusColor(client.status)
+                              )}>
+                                {client.status.charAt(0).toUpperCase() + client.status.slice(1)}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <Button variant="ghost" size="icon">
+                                  <Mail className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                            Nenhum cliente encontrado
                           </TableCell>
                         </TableRow>
-                      ))}
+                      )}
                     </TableBody>
                   </Table>
                 </TabsContent>
@@ -240,7 +290,7 @@ const Clients: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {clientsData.slice(0, 3).map((client) => (
+                  {clients.slice(0, 3).map((client) => (
                     <div key={client.id} className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-md">
                       <div>
                         <p className="font-medium">{client.name}</p>
