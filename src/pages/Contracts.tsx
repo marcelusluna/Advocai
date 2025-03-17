@@ -1,6 +1,6 @@
 
-import React from "react";
-import MainLayout from "@/layouts/main-layout";
+import React, { useContext } from "react";
+import MainLayout, { CreateEntityContext } from "@/layouts/main-layout";
 import Container from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -135,6 +135,35 @@ const getPriorityColor = (priority: string) => {
 };
 
 const Contracts: React.FC = () => {
+  const { openDialog } = useContext(CreateEntityContext);
+  
+  const handleNewContract = () => {
+    openDialog({
+      title: "Adicionar Novo Contrato",
+      description: "Preencha os campos abaixo para adicionar um novo contrato.",
+      fields: [
+        { id: "title", label: "Título", placeholder: "Título do contrato" },
+        { id: "client", label: "Cliente", placeholder: "Nome do cliente" },
+        { id: "value", label: "Valor", placeholder: "R$ 0,00" },
+        { id: "startDate", label: "Data de Início", placeholder: "DD/MM/AAAA" },
+        { id: "endDate", label: "Data de Término", placeholder: "DD/MM/AAAA" },
+        { 
+          id: "status", 
+          label: "Status", 
+          placeholder: "Selecione o status",
+          options: [
+            { value: "ativo", label: "Ativo" },
+            { value: "pendente", label: "Pendente" },
+            { value: "finalizado", label: "Finalizado" },
+            { value: "cancelado", label: "Cancelado" }
+          ]
+        },
+      ],
+      submitLabel: "Adicionar Contrato",
+      entityType: "contract"
+    });
+  };
+
   return (
     <MainLayout>
       <div className="py-8 animate-fade-in">
@@ -151,7 +180,7 @@ const Contracts: React.FC = () => {
                 <Filter className="h-4 w-4 mr-2" />
                 Filtrar
               </Button>
-              <Button>
+              <Button onClick={handleNewContract}>
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Contrato
               </Button>

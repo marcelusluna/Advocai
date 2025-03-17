@@ -1,13 +1,12 @@
-
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Users, Plus, Search, Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { CreateEntityContext } from "@/layouts/main-layout";
 
-// Dados de exemplo para clientes recentes
 const initialClientsData = [
   {
     id: "1",
@@ -61,7 +60,6 @@ const RecentClients: React.FC = () => {
   const [filteredClients, setFilteredClients] = useState(initialClientsData);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
-  const [showNewClientDialog, setShowNewClientDialog] = useState(false);
   const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [newClient, setNewClient] = useState({
     name: "",
@@ -71,6 +69,7 @@ const RecentClients: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   
   const { toast } = useToast();
+  const { openDialog } = useContext(CreateEntityContext);
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
@@ -136,6 +135,28 @@ const RecentClients: React.FC = () => {
     });
   };
 
+  const handleNewClient = () => {
+    openDialog({
+      title: "Adicionar Novo Cliente",
+      description: "Preencha os campos abaixo para adicionar um novo cliente.",
+      fields: [
+        { id: "name", label: "Nome", placeholder: "Nome do cliente" },
+        { id: "email", label: "Email", placeholder: "email@exemplo.com", type: "email" },
+        { 
+          id: "type", 
+          label: "Tipo", 
+          placeholder: "Selecione o tipo",
+          options: [
+            { value: "Pessoa Física", label: "Pessoa Física" },
+            { value: "Pessoa Jurídica", label: "Pessoa Jurídica" }
+          ]
+        },
+      ],
+      submitLabel: "Adicionar Cliente",
+      entityType: "client"
+    });
+  };
+
   return (
     <>
       <div className="bg-card rounded-lg border border-border shadow-sm animate-slide-up">
@@ -192,7 +213,7 @@ const RecentClients: React.FC = () => {
                   variant="ghost" 
                   size="icon" 
                   className="h-8 w-8" 
-                  onClick={() => setShowNewClientDialog(true)}
+                  onClick={handleNewClient}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -247,56 +268,6 @@ const RecentClients: React.FC = () => {
         </div>
       </div>
 
-      {/* Dialog para novo cliente */}
-      <Dialog open={showNewClientDialog} onOpenChange={setShowNewClientDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Adicionar Novo Cliente</DialogTitle>
-            <DialogDescription>
-              Preencha os campos abaixo para adicionar um novo cliente.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium">Nome</label>
-              <Input
-                id="name"
-                placeholder="Nome do cliente"
-                value={newClient.name}
-                onChange={(e) => setNewClient({...newClient, name: e.target.value})}
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">Email</label>
-              <Input
-                id="email"
-                placeholder="email@exemplo.com"
-                type="email"
-                value={newClient.email}
-                onChange={(e) => setNewClient({...newClient, email: e.target.value})}
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="type" className="text-sm font-medium">Tipo</label>
-              <select
-                id="type"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={newClient.type}
-                onChange={(e) => setNewClient({...newClient, type: e.target.value})}
-              >
-                <option>Pessoa Física</option>
-                <option>Pessoa Jurídica</option>
-              </select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNewClientDialog(false)}>Cancelar</Button>
-            <Button onClick={addNewClient}>Adicionar Cliente</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog para filtros */}
       <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
         <DialogContent>
           <DialogHeader>

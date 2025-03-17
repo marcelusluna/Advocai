@@ -1,6 +1,6 @@
 
-import React from "react";
-import MainLayout from "@/layouts/main-layout";
+import React, { useContext } from "react";
+import MainLayout, { CreateEntityContext } from "@/layouts/main-layout";
 import Container from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -81,6 +81,31 @@ const getStatusColor = (status: string) => {
 };
 
 const Clients: React.FC = () => {
+  const { openDialog } = useContext(CreateEntityContext);
+  
+  const handleNewClient = () => {
+    openDialog({
+      title: "Adicionar Novo Cliente",
+      description: "Preencha os campos abaixo para adicionar um novo cliente.",
+      fields: [
+        { id: "name", label: "Nome", placeholder: "Nome do cliente" },
+        { id: "email", label: "Email", placeholder: "email@exemplo.com", type: "email" },
+        { id: "phone", label: "Telefone", placeholder: "(00) 00000-0000" },
+        { 
+          id: "type", 
+          label: "Tipo", 
+          placeholder: "Selecione o tipo",
+          options: [
+            { value: "Pessoa Física", label: "Pessoa Física" },
+            { value: "Pessoa Jurídica", label: "Pessoa Jurídica" }
+          ]
+        },
+      ],
+      submitLabel: "Adicionar Cliente",
+      entityType: "client"
+    });
+  };
+
   return (
     <MainLayout>
       <div className="py-8 animate-fade-in">
@@ -97,7 +122,7 @@ const Clients: React.FC = () => {
                 <Filter className="h-4 w-4 mr-2" />
                 Filtrar
               </Button>
-              <Button>
+              <Button onClick={handleNewClient}>
                 <UserPlus className="h-4 w-4 mr-2" />
                 Novo Cliente
               </Button>

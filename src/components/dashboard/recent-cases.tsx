@@ -1,11 +1,11 @@
-
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Briefcase, Plus, Search, Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { CreateEntityContext } from "@/layouts/main-layout";
 
 // Dados de exemplo para processos recentes
 const initialCasesData = [
@@ -63,7 +63,6 @@ const RecentCases: React.FC = () => {
   const [filteredCases, setFilteredCases] = useState(initialCasesData);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
-  const [showNewCaseDialog, setShowNewCaseDialog] = useState(false);
   const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [newCase, setNewCase] = useState({
     number: "",
@@ -74,6 +73,7 @@ const RecentCases: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   
   const { toast } = useToast();
+  const { openDialog } = useContext(CreateEntityContext);
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
@@ -139,6 +139,42 @@ const RecentCases: React.FC = () => {
     });
   };
 
+  const handleNewCase = () => {
+    openDialog({
+      title: "Adicionar Novo Processo",
+      description: "Preencha os campos abaixo para adicionar um novo processo.",
+      fields: [
+        { id: "number", label: "Número", placeholder: "0000000-00.0000.0.00.0000" },
+        { id: "client", label: "Cliente", placeholder: "Nome do cliente" },
+        { 
+          id: "type", 
+          label: "Tipo", 
+          placeholder: "Selecione o tipo",
+          options: [
+            { value: "Cível", label: "Cível" },
+            { value: "Trabalhista", label: "Trabalhista" },
+            { value: "Tributário", label: "Tributário" },
+            { value: "Criminal", label: "Criminal" },
+            { value: "Administrativo", label: "Administrativo" }
+          ]
+        },
+        { 
+          id: "stage", 
+          label: "Fase", 
+          placeholder: "Selecione a fase",
+          options: [
+            { value: "Inicial", label: "Inicial" },
+            { value: "Conhecimento", label: "Conhecimento" },
+            { value: "Recursal", label: "Recursal" },
+            { value: "Execução", label: "Execução" }
+          ]
+        },
+      ],
+      submitLabel: "Adicionar Processo",
+      entityType: "case"
+    });
+  };
+
   return (
     <>
       <div className="bg-card rounded-lg border border-border shadow-sm animate-slide-up delay-100">
@@ -195,7 +231,7 @@ const RecentCases: React.FC = () => {
                   variant="ghost" 
                   size="icon" 
                   className="h-8 w-8" 
-                  onClick={() => setShowNewCaseDialog(true)}
+                  onClick={handleNewCase}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -249,73 +285,6 @@ const RecentCases: React.FC = () => {
           </Button>
         </div>
       </div>
-
-      {/* Dialog para novo processo */}
-      <Dialog open={showNewCaseDialog} onOpenChange={setShowNewCaseDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Adicionar Novo Processo</DialogTitle>
-            <DialogDescription>
-              Preencha os campos abaixo para adicionar um novo processo.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <label htmlFor="number" className="text-sm font-medium">Número do Processo</label>
-              <Input
-                id="number"
-                placeholder="0000000-00.0000.0.00.0000"
-                value={newCase.number}
-                onChange={(e) => setNewCase({...newCase, number: e.target.value})}
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="client" className="text-sm font-medium">Cliente</label>
-              <Input
-                id="client"
-                placeholder="Nome do cliente"
-                value={newCase.client}
-                onChange={(e) => setNewCase({...newCase, client: e.target.value})}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="type" className="text-sm font-medium">Tipo</label>
-                <select
-                  id="type"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  value={newCase.type}
-                  onChange={(e) => setNewCase({...newCase, type: e.target.value})}
-                >
-                  <option>Cível</option>
-                  <option>Trabalhista</option>
-                  <option>Tributário</option>
-                  <option>Criminal</option>
-                  <option>Administrativo</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="stage" className="text-sm font-medium">Fase</label>
-                <select
-                  id="stage"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  value={newCase.stage}
-                  onChange={(e) => setNewCase({...newCase, stage: e.target.value})}
-                >
-                  <option>Inicial</option>
-                  <option>Conhecimento</option>
-                  <option>Recursal</option>
-                  <option>Execução</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNewCaseDialog(false)}>Cancelar</Button>
-            <Button onClick={addNewCase}>Adicionar Processo</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Dialog para filtros */}
       <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>

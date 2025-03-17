@@ -1,6 +1,6 @@
 
-import React from "react";
-import MainLayout from "@/layouts/main-layout";
+import React, { useContext } from "react";
+import MainLayout, { CreateEntityContext } from "@/layouts/main-layout";
 import Container from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -117,6 +117,45 @@ const getPriorityColor = (priority: string) => {
 };
 
 const Cases: React.FC = () => {
+  const { openDialog } = useContext(CreateEntityContext);
+  
+  const handleNewCase = () => {
+    openDialog({
+      title: "Adicionar Novo Processo",
+      description: "Preencha os campos abaixo para adicionar um novo processo.",
+      fields: [
+        { id: "number", label: "Número", placeholder: "0000000-00.0000.0.00.0000" },
+        { id: "client", label: "Cliente", placeholder: "Nome do cliente" },
+        { id: "subject", label: "Assunto", placeholder: "Assunto do processo" },
+        { 
+          id: "type", 
+          label: "Tipo", 
+          placeholder: "Selecione o tipo",
+          options: [
+            { value: "Cível", label: "Cível" },
+            { value: "Trabalhista", label: "Trabalhista" },
+            { value: "Empresarial", label: "Empresarial" },
+            { value: "Família", label: "Família" },
+            { value: "Tributário", label: "Tributário" }
+          ]
+        },
+        { 
+          id: "stage", 
+          label: "Fase", 
+          placeholder: "Selecione a fase",
+          options: [
+            { value: "Inicial", label: "Inicial" },
+            { value: "Conhecimento", label: "Conhecimento" },
+            { value: "Recursal", label: "Recursal" },
+            { value: "Execução", label: "Execução" }
+          ]
+        },
+      ],
+      submitLabel: "Adicionar Processo",
+      entityType: "case"
+    });
+  };
+
   return (
     <MainLayout>
       <div className="py-8 animate-fade-in">
@@ -133,7 +172,7 @@ const Cases: React.FC = () => {
                 <Filter className="h-4 w-4 mr-2" />
                 Filtrar
               </Button>
-              <Button>
+              <Button onClick={handleNewCase}>
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Processo
               </Button>
