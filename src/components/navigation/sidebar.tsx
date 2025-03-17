@@ -100,12 +100,13 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between p-4 border-b border-gray-100">
           {!collapsed ? (
-            <div className="flex items-center">
+            <div className="flex items-center gap-2">
               <img 
                 src="/lovable-uploads/c00e8e22-2552-42f7-a22a-8b0f08c510a8.png" 
                 alt="Logo" 
                 className="h-8 w-auto" 
               />
+              <span className="font-medium text-gray-800 tracking-tight">Advoc.AI</span>
             </div>
           ) : (
             <img 
