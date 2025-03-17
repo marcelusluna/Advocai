@@ -99,13 +99,20 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
     >
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between p-4 border-b border-gray-100">
-          {!collapsed && (
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center">
-                <span className="text-white text-xs font-bold">AC</span>
-              </div>
-              <span className="font-semibold text-gray-900">AdvoCase</span>
+          {!collapsed ? (
+            <div className="flex items-center">
+              <img 
+                src="/lovable-uploads/c00e8e22-2552-42f7-a22a-8b0f08c510a8.png" 
+                alt="Logo" 
+                className="h-8 w-auto" 
+              />
             </div>
+          ) : (
+            <img 
+              src="/lovable-uploads/c00e8e22-2552-42f7-a22a-8b0f08c510a8.png" 
+              alt="Logo" 
+              className="h-8 w-auto mx-auto" 
+            />
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}
