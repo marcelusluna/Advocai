@@ -1,4 +1,3 @@
-
 import React, { useContext } from "react";
 import MainLayout, { CreateEntityContext } from "@/layouts/main-layout";
 import Container from "@/components/ui/container";
@@ -9,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Filter, Search, FileText, Calendar, Clock, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Dados fictícios de processos
 const casesData = [
   {
     id: "1",
@@ -63,7 +61,6 @@ const casesData = [
   }
 ];
 
-// Dados de tarefas processuais
 const caseTasks = [
   {
     id: "1",

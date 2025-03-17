@@ -112,7 +112,6 @@ const RecentCases: React.FC = () => {
     setCases(updatedCases);
     setFilteredCases(updatedCases);
     setNewCase({ number: "", client: "", type: "Cível", stage: "Inicial" });
-    setShowNewCaseDialog(false);
     
     toast({
       title: "Processo adicionado",
@@ -286,7 +285,6 @@ const RecentCases: React.FC = () => {
         </div>
       </div>
 
-      {/* Dialog para filtros */}
       <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
         <DialogContent>
           <DialogHeader>

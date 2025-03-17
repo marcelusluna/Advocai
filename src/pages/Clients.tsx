@@ -1,4 +1,3 @@
-
 import React, { useContext } from "react";
 import MainLayout, { CreateEntityContext } from "@/layouts/main-layout";
 import Container from "@/components/ui/container";
@@ -9,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Filter, Search, UserPlus, Download, Mail, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Dados fictícios de clientes
 const clientsData = [
   {
     id: "1",

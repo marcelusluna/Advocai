@@ -108,7 +108,6 @@ const RecentClients: React.FC = () => {
     setClients(updatedClients);
     setFilteredClients(updatedClients);
     setNewClient({ name: "", email: "", type: "Pessoa Física" });
-    setShowNewClientDialog(false);
     
     toast({
       title: "Cliente adicionado",
