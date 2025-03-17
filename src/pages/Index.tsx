@@ -223,7 +223,7 @@ const Index: React.FC = () => {
               {/* Notifications */}
               <Card className="bg-white border-gray-100 shadow-sm">
                 <CardHeader className="pb-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="flex items-center justify-between gap-2">
                     <div>
                       <CardTitle className="text-lg font-medium text-gray-900">Notificações</CardTitle>
                       <p className="text-sm text-gray-500 mt-1">Atualizações recentes</p>
@@ -239,9 +239,9 @@ const Index: React.FC = () => {
               </Card>
 
               {/* Recent Clients */}
-              <Card className="bg-white border-gray-100 shadow-sm">
+              <Card className="bg-white border-gray-100 shadow-sm overflow-hidden">
                 <CardHeader className="pb-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="flex items-center justify-between gap-2">
                     <div>
                       <CardTitle className="text-lg font-medium text-gray-900">Clientes Recentes</CardTitle>
                       <p className="text-sm text-gray-500 mt-1">Últimos clientes cadastrados</p>
@@ -252,7 +252,7 @@ const Index: React.FC = () => {
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="pt-4 max-h-[320px] overflow-y-auto">
+                <CardContent className="p-0 max-h-[320px] overflow-hidden">
                   <RecentClients />
                 </CardContent>
               </Card>

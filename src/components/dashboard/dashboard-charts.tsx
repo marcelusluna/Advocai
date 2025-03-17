@@ -32,14 +32,14 @@ const processesChartData = [
 ];
 
 const faturamentoData = [
-  { name: "Jan", total: 15500, despesas: 8200, lucro: 7300 },
-  { name: "Fev", total: 23400, despesas: 12600, lucro: 10800 },
-  { name: "Mar", total: 18300, despesas: 10500, lucro: 7800 },
-  { name: "Abr", total: 35800, despesas: 18200, lucro: 17600 },
-  { name: "Mai", total: 28500, despesas: 14800, lucro: 13700 },
-  { name: "Jun", total: 42600, despesas: 22400, lucro: 20200 },
-  { name: "Jul", total: 38900, despesas: 19700, lucro: 19200 },
-  { name: "Ago", total: 47500, despesas: 23800, lucro: 23700 },
+  { name: "Jan", total: 15500 },
+  { name: "Fev", total: 23400 },
+  { name: "Mar", total: 18300 },
+  { name: "Abr", total: 35800 },
+  { name: "Mai", total: 28500 },
+  { name: "Jun", total: 42600 },
+  { name: "Jul", total: 38900 },
+  { name: "Ago", total: 47500 },
 ];
 
 const pieChartData = [
@@ -196,19 +196,13 @@ export const FaturamentoChart = () => {
                 tickFormatter={(value) => `R$ ${(value/1000).toFixed(0)}K`}
               />
               <Tooltip 
-                content={<CustomTooltip valueLabel="Valor" formatter={(value) => formatCurrency(value)} />} 
+                content={<CustomTooltip valueLabel="Faturamento" formatter={(value) => formatCurrency(value)} />} 
               />
               <Legend wrapperStyle={{ bottom: 0 }} />
               <Bar 
                 name="Faturamento Total" 
                 dataKey="total" 
                 fill="#3b82f6" 
-                radius={[4, 4, 0, 0]}
-              />
-              <Bar 
-                name="Lucro Líquido" 
-                dataKey="lucro" 
-                fill="#10b981" 
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>

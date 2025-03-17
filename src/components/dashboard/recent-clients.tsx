@@ -1,3 +1,4 @@
+
 import React, { useState, useContext } from "react";
 import { Users, Plus, Search, Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -158,33 +159,33 @@ const RecentClients: React.FC = () => {
 
   return (
     <>
-      <div className="bg-card rounded-lg border border-border shadow-sm animate-slide-up">
-        <div className="flex items-center justify-between p-4 border-b border-border">
+      <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between p-3 border-b border-border">
           <div className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-primary" />
-            <h3 className="font-medium">Clientes Recentes</h3>
+            <Users className="h-4 w-4 text-primary" />
+            <h3 className="font-medium text-sm">Clientes Recentes</h3>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             {showSearch ? (
-              <div className="flex items-center bg-muted rounded-md">
+              <div className="flex items-center bg-muted rounded-md w-36 sm:w-48">
                 <Input
                   type="text"
-                  placeholder="Buscar cliente..."
+                  placeholder="Buscar..."
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="h-8 text-xs border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="h-7 text-xs border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-2"
                 />
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-8 w-8" 
+                  className="h-7 w-7" 
                   onClick={() => {
                     setShowSearch(false);
                     setSearchTerm("");
                     setFilteredClients(clients);
                   }}
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3 w-3" />
                 </Button>
               </div>
             ) : (
@@ -192,51 +193,51 @@ const RecentClients: React.FC = () => {
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-8 w-8" 
+                  className="h-7 w-7" 
                   onClick={() => setShowSearch(true)}
                 >
-                  <Search className="h-4 w-4" />
+                  <Search className="h-3 w-3" />
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   className={cn(
-                    "h-8 w-8",
+                    "h-7 w-7",
                     activeFilter && "text-primary bg-primary/10"
                   )}
                   onClick={() => setShowFilterDialog(true)}
                 >
-                  <Filter className="h-4 w-4" />
+                  <Filter className="h-3 w-3" />
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-8 w-8" 
+                  className="h-7 w-7" 
                   onClick={handleNewClient}
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-3 w-3" />
                 </Button>
               </>
             )}
-            <span className="text-xs text-muted-foreground">Total: {filteredClients.length}</span>
+            <span className="text-xs text-muted-foreground hidden sm:inline-block ml-1">{filteredClients.length}</span>
           </div>
         </div>
         
-        <div className="p-2">
+        <div className="max-h-[250px] overflow-y-auto">
           {filteredClients.length > 0 ? (
             filteredClients.map((client) => (
               <div 
                 key={client.id} 
-                className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-md transition-colors cursor-pointer"
+                className="flex items-center justify-between p-2.5 hover:bg-muted/50 rounded-md transition-colors cursor-pointer border-b border-gray-50 last:border-b-0"
               >
-                <div className="flex flex-col">
-                  <span className="font-medium">{client.name}</span>
-                  <span className="text-xs text-muted-foreground">{client.email}</span>
+                <div className="flex flex-col overflow-hidden">
+                  <span className="font-medium text-sm truncate" title={client.name}>{client.name}</span>
+                  <span className="text-xs text-muted-foreground truncate" title={client.email}>{client.email}</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-muted-foreground">{client.date}</span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">{client.date}</span>
                   <span className={cn(
-                    "text-xs px-2 py-0.5 rounded-full border",
+                    "text-[10px] px-1.5 py-0.5 rounded-full border whitespace-nowrap",
                     getStatusColor(client.status)
                   )}>
                     {client.status.charAt(0).toUpperCase() + client.status.slice(1)}
@@ -245,16 +246,16 @@ const RecentClients: React.FC = () => {
               </div>
             ))
           ) : (
-            <div className="text-center py-6 text-muted-foreground">
+            <div className="text-center py-4 text-muted-foreground text-sm">
               <p>Nenhum cliente encontrado</p>
             </div>
           )}
         </div>
         
-        <div className="p-3 border-t border-border">
+        <div className="p-2 border-t border-border">
           <Button 
             variant="link" 
-            className="text-sm text-primary hover:text-primary/80 transition-colors w-full text-center"
+            className="text-xs text-primary hover:text-primary/80 transition-colors w-full text-center h-auto py-1"
             onClick={() => {
               toast({
                 title: "Redirecionando",
@@ -268,7 +269,7 @@ const RecentClients: React.FC = () => {
       </div>
 
       <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Filtrar Clientes</DialogTitle>
             <DialogDescription>
