@@ -159,7 +159,7 @@ const RecentClients: React.FC = () => {
 
   return (
     <>
-      <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
+      <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden w-full h-full flex flex-col">
         <div className="flex items-center justify-between p-3 border-b border-border">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-primary" />
@@ -223,16 +223,20 @@ const RecentClients: React.FC = () => {
           </div>
         </div>
         
-        <div className="max-h-[250px] overflow-y-auto">
+        <div className="overflow-y-auto flex-grow" style={{ maxHeight: "210px" }}>
           {filteredClients.length > 0 ? (
             filteredClients.map((client) => (
               <div 
                 key={client.id} 
-                className="flex items-center justify-between p-2.5 hover:bg-muted/50 rounded-md transition-colors cursor-pointer border-b border-gray-50 last:border-b-0"
+                className="flex items-center justify-between px-3 py-2.5 hover:bg-muted/50 transition-colors cursor-pointer border-b border-gray-50 last:border-b-0"
               >
-                <div className="flex flex-col overflow-hidden">
-                  <span className="font-medium text-sm truncate" title={client.name}>{client.name}</span>
-                  <span className="text-xs text-muted-foreground truncate" title={client.email}>{client.email}</span>
+                <div className="flex flex-col min-w-0 mr-2">
+                  <span className="font-medium text-sm truncate max-w-[150px] sm:max-w-[200px]" title={client.name}>
+                    {client.name}
+                  </span>
+                  <span className="text-xs text-muted-foreground truncate max-w-[150px] sm:max-w-[200px]" title={client.email}>
+                    {client.email}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="text-[10px] text-muted-foreground whitespace-nowrap">{client.date}</span>
@@ -252,7 +256,7 @@ const RecentClients: React.FC = () => {
           )}
         </div>
         
-        <div className="p-2 border-t border-border">
+        <div className="p-2 border-t border-border mt-auto">
           <Button 
             variant="link" 
             className="text-xs text-primary hover:text-primary/80 transition-colors w-full text-center h-auto py-1"
