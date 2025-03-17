@@ -106,7 +106,12 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
                 alt="Logo" 
                 className="h-8 w-auto" 
               />
-              <span className="font-medium text-gray-800 tracking-tight">Advoc.AI</span>
+              <div className="flex flex-col">
+                <span className="font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 tracking-tight text-lg">
+                  Advoc.AI
+                </span>
+                <span className="text-[10px] text-gray-500 leading-none">Inteligência para Advocacia</span>
+              </div>
             </div>
           ) : (
             <img 
