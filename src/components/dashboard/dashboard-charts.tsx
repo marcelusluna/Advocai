@@ -20,26 +20,26 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Enhanced sample data for the charts with more realistic values
-const areaChartData = [
-  { name: "Jan", cases: 42, growth: 5 },
-  { name: "Fev", cases: 38, growth: -9 },
-  { name: "Mar", cases: 45, growth: 18 },
-  { name: "Abr", cases: 53, growth: 18 },
-  { name: "Mai", cases: 49, growth: -8 },
-  { name: "Jun", cases: 62, growth: 26 },
-  { name: "Jul", cases: 78, growth: 26 },
-  { name: "Ago", cases: 71, growth: -9 },
+const processesChartData = [
+  { name: "Jan", processos: 42, crescimento: 5 },
+  { name: "Fev", processos: 38, crescimento: -9 },
+  { name: "Mar", processos: 45, crescimento: 18 },
+  { name: "Abr", processos: 53, crescimento: 18 },
+  { name: "Mai", processos: 49, crescimento: -8 },
+  { name: "Jun", processos: 62, crescimento: 26 },
+  { name: "Jul", processos: 78, crescimento: 26 },
+  { name: "Ago", processos: 71, crescimento: -9 },
 ];
 
-const revenueData = [
-  { name: "Jan", total: 15500, expenses: 8200, profit: 7300 },
-  { name: "Fev", total: 23400, expenses: 12600, profit: 10800 },
-  { name: "Mar", total: 18300, expenses: 10500, profit: 7800 },
-  { name: "Abr", total: 35800, expenses: 18200, profit: 17600 },
-  { name: "Mai", total: 28500, expenses: 14800, profit: 13700 },
-  { name: "Jun", total: 42600, expenses: 22400, profit: 20200 },
-  { name: "Jul", total: 38900, expenses: 19700, profit: 19200 },
-  { name: "Ago", total: 47500, expenses: 23800, profit: 23700 },
+const faturamentoData = [
+  { name: "Jan", total: 15500, despesas: 8200, lucro: 7300 },
+  { name: "Fev", total: 23400, despesas: 12600, lucro: 10800 },
+  { name: "Mar", total: 18300, despesas: 10500, lucro: 7800 },
+  { name: "Abr", total: 35800, despesas: 18200, lucro: 17600 },
+  { name: "Mai", total: 28500, despesas: 14800, lucro: 13700 },
+  { name: "Jun", total: 42600, despesas: 22400, lucro: 20200 },
+  { name: "Jul", total: 38900, despesas: 19700, lucro: 19200 },
+  { name: "Ago", total: 47500, despesas: 23800, lucro: 23700 },
 ];
 
 const pieChartData = [
@@ -102,17 +102,17 @@ const formatCurrency = (value: number) =>
 const formatPercentage = (value: number) => 
   `${value > 0 ? '+' : ''}${value}%`;
 
-export const CasesChart = () => {
+export const ProcessesChart = () => {
   return (
     <Card className="col-span-4 sm:col-span-2 w-full">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg font-medium">Evolução de Casos</CardTitle>
+        <CardTitle className="text-lg font-medium">Evolução de Processos</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
-              data={areaChartData}
+              data={processesChartData}
               margin={{
                 top: 10,
                 right: 10,
@@ -137,19 +137,19 @@ export const CasesChart = () => {
                 domain={[0, 'dataMax + 10']}
               />
               <Tooltip 
-                content={<CustomTooltip valueLabel="Casos" />} 
+                content={<CustomTooltip valueLabel="Processos" />} 
               />
               <Legend wrapperStyle={{ bottom: 0 }} />
               <Area
-                name="Número de Casos"
+                name="Número de Processos"
                 type="monotone"
-                dataKey="cases"
+                dataKey="processos"
                 stroke="#3b82f6"
-                fill="url(#colorCases)"
+                fill="url(#colorProcessos)"
                 strokeWidth={2}
               />
               <defs>
-                <linearGradient id="colorCases" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="colorProcessos" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
                   <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                 </linearGradient>
@@ -162,17 +162,17 @@ export const CasesChart = () => {
   );
 };
 
-export const RevenueChart = () => {
+export const FaturamentoChart = () => {
   return (
     <Card className="col-span-4 sm:col-span-2 w-full">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg font-medium">Receita e Lucro</CardTitle>
+        <CardTitle className="text-lg font-medium">Faturamento</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={revenueData}
+              data={faturamentoData}
               margin={{
                 top: 10,
                 right: 10,
@@ -193,21 +193,21 @@ export const RevenueChart = () => {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) => `${formatCurrency(value).slice(0, -3)}K`}
+                tickFormatter={(value) => `R$ ${(value/1000).toFixed(0)}K`}
               />
               <Tooltip 
                 content={<CustomTooltip valueLabel="Valor" formatter={(value) => formatCurrency(value)} />} 
               />
               <Legend wrapperStyle={{ bottom: 0 }} />
               <Bar 
-                name="Receita Total" 
+                name="Faturamento Total" 
                 dataKey="total" 
                 fill="#3b82f6" 
                 radius={[4, 4, 0, 0]}
               />
               <Bar 
                 name="Lucro Líquido" 
-                dataKey="profit" 
+                dataKey="lucro" 
                 fill="#10b981" 
                 radius={[4, 4, 0, 0]}
               />
@@ -254,7 +254,7 @@ export const CaseTypesPieChart = () => {
                   }
                 }}
               />
-              <Legend />
+              <Legend formatter={(value) => <span className="text-sm font-medium">{value}</span>} />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -298,7 +298,7 @@ export const ClientAcquisitionChart = () => {
               <Tooltip 
                 content={<CustomTooltip valueLabel="Clientes" />} 
               />
-              <Legend wrapperStyle={{ bottom: 0 }} />
+              <Legend wrapperStyle={{ bottom: 0 }} formatter={(value) => <span className="text-sm font-medium">{value}</span>} />
               <Line 
                 name="Novos Clientes"
                 type="monotone" 
@@ -328,8 +328,8 @@ export const ClientAcquisitionChart = () => {
 const DashboardCharts = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <CasesChart />
-      <RevenueChart />
+      <ProcessesChart />
+      <FaturamentoChart />
       <CaseTypesPieChart />
       <ClientAcquisitionChart />
     </div>

@@ -130,7 +130,7 @@ const NotificationsPanel: React.FC = () => {
   const naoLidas = notificacoes.filter(n => !n.lida).length;
 
   return (
-    <Card className="animate-fade-in delay-200">
+    <Card className="animate-fade-in delay-200 w-full">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -144,15 +144,15 @@ const NotificationsPanel: React.FC = () => {
           )}
         </div>
       </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="notificacoes">
-          <TabsList className="w-full mb-4">
+      <CardContent className="p-0">
+        <Tabs defaultValue="notificacoes" className="w-full">
+          <TabsList className="w-full mb-2 px-4 pt-2">
             <TabsTrigger value="notificacoes" className="flex-1">Notificações</TabsTrigger>
             <TabsTrigger value="compromissos" className="flex-1">Compromissos</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="notificacoes" className="mt-0">
-            <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+          <TabsContent value="notificacoes" className="mt-0 px-4">
+            <div className="space-y-3 max-h-[280px] overflow-y-auto pr-1">
               {notificacoes.length > 0 ? (
                 notificacoes.map((notif) => (
                   <div 
@@ -163,29 +163,29 @@ const NotificationsPanel: React.FC = () => {
                     )}
                   >
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center justify-between mb-1 flex-wrap gap-1">
                         <h4 className={cn(
-                          "text-sm font-medium",
+                          "text-sm font-medium truncate max-w-[calc(100%-80px)]",
                           notif.lida ? "text-muted-foreground" : "text-foreground"
                         )}>
                           {notif.titulo}
                         </h4>
                         <span className={cn(
-                          "text-xs px-2 py-0.5 rounded-full border ml-2",
+                          "text-xs px-2 py-0.5 rounded-full border shrink-0",
                           getUrgenciaStyle(notif.urgencia)
                         )}>
                           {notif.urgencia.charAt(0).toUpperCase() + notif.urgencia.slice(1)}
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground mb-1">{notif.descricao}</p>
+                      <p className="text-xs text-muted-foreground mb-1 break-words">{notif.descricao}</p>
                       <div className="flex items-center text-xs text-muted-foreground">
-                        {notif.tipo === "prazo" && <CircleAlert className="h-3 w-3 mr-1 text-red-500" />}
-                        {notif.tipo === "audiencia" && <Calendar className="h-3 w-3 mr-1 text-blue-500" />}
-                        {notif.tipo === "compromisso" && <Clock className="h-3 w-3 mr-1 text-green-500" />}
+                        {notif.tipo === "prazo" && <CircleAlert className="h-3 w-3 mr-1 text-red-500 shrink-0" />}
+                        {notif.tipo === "audiencia" && <Calendar className="h-3 w-3 mr-1 text-blue-500 shrink-0" />}
+                        {notif.tipo === "compromisso" && <Clock className="h-3 w-3 mr-1 text-green-500 shrink-0" />}
                         <span>{notif.data}</span>
                         {notif.hora && <span className="ml-1">às {notif.hora}</span>}
                       </div>
-                      <div className="flex items-center mt-2 gap-2">
+                      <div className="flex items-center mt-2 gap-2 flex-wrap">
                         {!notif.lida && (
                           <Button 
                             variant="outline" 
@@ -214,13 +214,13 @@ const NotificationsPanel: React.FC = () => {
                 </div>
               )}
             </div>
-            <div className="mt-3 text-center">
+            <div className="mt-3 text-center py-2 px-1">
               <Button variant="outline" className="w-full">Ver todas as notificações</Button>
             </div>
           </TabsContent>
           
-          <TabsContent value="compromissos" className="mt-0">
-            <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+          <TabsContent value="compromissos" className="mt-0 px-4">
+            <div className="space-y-3 max-h-[280px] overflow-y-auto pr-1">
               {compromissos.length > 0 ? (
                 compromissos.map((comp) => (
                   <div 
@@ -229,14 +229,14 @@ const NotificationsPanel: React.FC = () => {
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <h4 className="text-sm font-medium">{comp.titulo}</h4>
+                        <h4 className="text-sm font-medium truncate">{comp.titulo}</h4>
                       </div>
-                      <p className="text-xs text-muted-foreground mb-1">Cliente: {comp.cliente}</p>
+                      <p className="text-xs text-muted-foreground mb-1 break-words">Cliente: {comp.cliente}</p>
                       {comp.processo && (
-                        <p className="text-xs text-muted-foreground mb-1">Processo: {comp.processo}</p>
+                        <p className="text-xs text-muted-foreground mb-1 break-words">Processo: {comp.processo}</p>
                       )}
                       <div className="flex items-center text-xs text-muted-foreground">
-                        <Calendar className="h-3 w-3 mr-1" />
+                        <Calendar className="h-3 w-3 mr-1 shrink-0" />
                         <span>{comp.data} às {comp.hora}</span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">Local: {comp.local}</p>
@@ -259,7 +259,7 @@ const NotificationsPanel: React.FC = () => {
                 </div>
               )}
             </div>
-            <div className="mt-3 text-center">
+            <div className="mt-3 text-center py-2 px-1">
               <Button variant="outline" className="w-full">Ver todos os compromissos</Button>
             </div>
           </TabsContent>
