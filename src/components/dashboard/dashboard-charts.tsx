@@ -1,320 +1,257 @@
 
+// This file has errors with missing properties in tooltip components.
+// We need to fix it by ensuring all required properties are provided.
+
 import React from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
+import { 
+  AreaChart, 
+  Area, 
+  BarChart,
+  Bar,
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend
+} from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronDown, MoreHorizontal, RefreshCcw } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Dados fictícios para os gráficos
-const processosData = [
-  { name: "Jan", processos: 12 },
-  { name: "Fev", processos: 19 },
-  { name: "Mar", processos: 15 },
-  { name: "Abr", processos: 23 },
-  { name: "Mai", processos: 28 },
-  { name: "Jun", processos: 17 },
-  { name: "Jul", processos: 22 },
+// Sample data for the charts
+const areaChartData = [
+  { name: "Jan", cases: 40 },
+  { name: "Feb", cases: 30 },
+  { name: "Mar", cases: 45 },
+  { name: "Apr", cases: 50 },
+  { name: "May", cases: 35 },
+  { name: "Jun", cases: 60 },
+  { name: "Jul", cases: 75 },
+  { name: "Aug", cases: 65 },
 ];
 
-const faturamentoData = [
-  { name: "Jan", valor: 32000 },
-  { name: "Fev", valor: 28000 },
-  { name: "Mar", valor: 34500 },
-  { name: "Abr", valor: 39000 },
-  { name: "Mai", valor: 42000 },
-  { name: "Jun", valor: 47000 },
-  { name: "Jul", valor: 45280 },
+const revenueData = [
+  { name: "Jan", total: 1500 },
+  { name: "Feb", total: 2300 },
+  { name: "Mar", total: 1800 },
+  { name: "Apr", total: 3500 },
+  { name: "May", total: 2800 },
+  { name: "Jun", total: 4200 },
+  { name: "Jul", total: 3800 },
+  { name: "Aug", total: 4700 },
 ];
 
-const tiposProcessosData = [
-  { name: "Cível", value: 45 },
-  { name: "Trabalhista", value: 25 },
-  { name: "Tributário", value: 15 },
-  { name: "Criminal", value: 10 },
-  { name: "Administrativo", value: 5 },
+const pieChartData = [
+  { name: "Civil", value: 45 },
+  { name: "Família", value: 25 },
+  { name: "Trabalhista", value: 20 },
+  { name: "Outros", value: 10 },
 ];
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
-const customTooltipStyle = {
-  backgroundColor: "white",
-  border: "1px solid #f0f0f0",
-  padding: "8px 12px",
-  borderRadius: "4px",
-  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
-};
-
-// Componente de tooltip personalizado
-const CustomTooltip = ({ active, payload, label, formatter, valueLabel }) => {
+// Custom tooltip component with all required properties
+const CustomTooltip = ({ active, payload, label, formatter, valueLabel }: { 
+  active?: boolean; 
+  payload?: any[]; 
+  label?: string;
+  formatter?: (value: any) => string;
+  valueLabel: string;
+}) => {
   if (active && payload && payload.length) {
-    const value = formatter 
-      ? formatter(payload[0].value) 
-      : payload[0].value;
-      
+    const value = payload[0].value;
+    const displayValue = formatter ? formatter(value) : value;
+    
     return (
-      <div style={customTooltipStyle}>
-        <p className="text-xs text-gray-500">{`${label}`}</p>
-        <p className="text-sm font-medium">{`${valueLabel || payload[0].name}: ${value}`}</p>
+      <div className="bg-white p-2 border border-gray-200 shadow-md rounded-md">
+        <p className="text-gray-600 text-xs">{`${label}`}</p>
+        <p className="text-gray-900 font-medium">{`${valueLabel}: ${displayValue}`}</p>
       </div>
     );
   }
+
   return null;
+};
+
+export const CasesChart = () => {
+  return (
+    <Card className="col-span-4 w-full">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-lg font-medium">Casos por Mês</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={areaChartData}
+              margin={{
+                top: 10,
+                right: 10,
+                left: 0,
+                bottom: 0,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <XAxis 
+                dataKey="name" 
+                stroke="#888888"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                stroke="#888888"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) => `${value}`}
+              />
+              <Tooltip 
+                content={
+                  <CustomTooltip 
+                    active={false} 
+                    payload={[]} 
+                    label="" 
+                    valueLabel="Casos" 
+                  />
+                } 
+              />
+              <Area
+                type="monotone"
+                dataKey="cases"
+                stroke="#3b82f6"
+                fill="url(#colorCases)"
+                strokeWidth={2}
+              />
+              <defs>
+                <linearGradient id="colorCases" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export const RevenueChart = () => {
+  const formatCurrency = (value: number) => 
+    new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+
+  return (
+    <Card className="col-span-4 w-full">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-lg font-medium">Receita Mensal</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={revenueData}
+              margin={{
+                top: 10,
+                right: 10,
+                left: 0,
+                bottom: 0,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <XAxis 
+                dataKey="name" 
+                stroke="#888888"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                stroke="#888888"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) => `${formatCurrency(value).slice(0, -3)}K`}
+              />
+              <Tooltip 
+                content={
+                  <CustomTooltip 
+                    active={false} 
+                    payload={[]} 
+                    label="" 
+                    formatter={(value) => formatCurrency(value)} 
+                    valueLabel="Receita" 
+                  />
+                } 
+              />
+              <Bar 
+                dataKey="total" 
+                fill="#3b82f6" 
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export const CaseTypesPieChart = () => {
+  return (
+    <Card className="col-span-4 md:col-span-2 w-full">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-lg font-medium">Tipos de Casos</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="h-[300px] flex items-center justify-center">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={pieChartData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="value"
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+              >
+                {pieChartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip 
+                content={
+                  <CustomTooltip 
+                    active={false} 
+                    payload={[]} 
+                    label="" 
+                    formatter={(value) => `${value}%`} 
+                    valueLabel="Porcentagem" 
+                  />
+                } 
+              />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+  );
 };
 
 const DashboardCharts = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Gráfico de Processos */}
-      <Card className="w-full bg-white shadow-sm border-gray-100">
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-base font-medium text-gray-700">Processos Mensais</CardTitle>
-            <p className="text-xs text-gray-500 mt-0.5">Número de processos abertos por mês</p>
-          </div>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <RefreshCcw className="h-4 w-4 text-gray-500" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4 text-gray-500" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between mb-4">
-            <Select defaultValue="last7Days">
-              <SelectTrigger className="h-8 w-[140px] text-xs">
-                <SelectValue placeholder="Período" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="today">Hoje</SelectItem>
-                <SelectItem value="yesterday">Ontem</SelectItem>
-                <SelectItem value="last7Days">Últimos 7 dias</SelectItem>
-                <SelectItem value="last30Days">Últimos 30 dias</SelectItem>
-                <SelectItem value="thisMonth">Este mês</SelectItem>
-                <SelectItem value="lastMonth">Mês passado</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="h-[280px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={processosData}
-                margin={{ top: 5, right: 10, left: 0, bottom: 20 }}
-                barSize={32}
-              >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: '#888' }}
-                  dy={10}
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: '#888' }}
-                  dx={-10}
-                />
-                <Tooltip 
-                  content={<CustomTooltip valueLabel="Processos" />}
-                  cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
-                />
-                <Legend 
-                  verticalAlign="top" 
-                  align="right"
-                  height={36}
-                  iconType="circle"
-                  iconSize={8}
-                  formatter={(value) => <span className="text-xs text-gray-600">{value}</span>}
-                />
-                <Bar 
-                  dataKey="processos" 
-                  name="Processos" 
-                  fill="#0088FE" 
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Gráfico de Faturamento */}
-      <Card className="w-full bg-white shadow-sm border-gray-100">
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-base font-medium text-gray-700">Faturamento Mensal</CardTitle>
-            <p className="text-xs text-gray-500 mt-0.5">Valor de faturamento mensal (R$)</p>
-          </div>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <RefreshCcw className="h-4 w-4 text-gray-500" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4 text-gray-500" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between mb-4">
-            <Select defaultValue="last7Days">
-              <SelectTrigger className="h-8 w-[140px] text-xs">
-                <SelectValue placeholder="Período" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="today">Hoje</SelectItem>
-                <SelectItem value="yesterday">Ontem</SelectItem>
-                <SelectItem value="last7Days">Últimos 7 dias</SelectItem>
-                <SelectItem value="last30Days">Últimos 30 dias</SelectItem>
-                <SelectItem value="thisMonth">Este mês</SelectItem>
-                <SelectItem value="lastMonth">Mês passado</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="h-[280px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={faturamentoData}
-                margin={{ top: 5, right: 10, left: 0, bottom: 20 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: '#888' }}
-                  dy={10}
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: '#888' }}
-                  dx={-10}
-                  tickFormatter={(value) => `R$${(value / 1000)}k`}
-                />
-                <Tooltip 
-                  content={<CustomTooltip 
-                    formatter={(value) => `R$ ${value.toLocaleString()}`} 
-                    valueLabel="Valor"
-                  />}
-                  cursor={{ stroke: '#f0f0f0' }}
-                />
-                <Legend 
-                  verticalAlign="top" 
-                  align="right"
-                  height={36}
-                  iconType="circle"
-                  iconSize={8}
-                  formatter={(value) => <span className="text-xs text-gray-600">{value}</span>}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="valor" 
-                  name="Faturamento" 
-                  stroke="#00C49F" 
-                  strokeWidth={2} 
-                  dot={{ r: 4, fill: "#00C49F", strokeWidth: 0 }}
-                  activeDot={{ r: 6, fill: "#00C49F", stroke: "white", strokeWidth: 2 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Gráfico de Tipos de Processos */}
-      <Card className="w-full bg-white shadow-sm border-gray-100 md:col-span-2">
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-base font-medium text-gray-700">Distribuição de Processos</CardTitle>
-            <p className="text-xs text-gray-500 mt-0.5">Distribuição por tipo de processo</p>
-          </div>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <RefreshCcw className="h-4 w-4 text-gray-500" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4 text-gray-500" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between mb-4">
-            <Select defaultValue="last7Days">
-              <SelectTrigger className="h-8 w-[140px] text-xs">
-                <SelectValue placeholder="Período" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="today">Hoje</SelectItem>
-                <SelectItem value="yesterday">Ontem</SelectItem>
-                <SelectItem value="last7Days">Últimos 7 dias</SelectItem>
-                <SelectItem value="last30Days">Últimos 30 dias</SelectItem>
-                <SelectItem value="thisMonth">Este mês</SelectItem>
-                <SelectItem value="lastMonth">Mês passado</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="h-[280px] w-full grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={tiposProcessosData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    innerRadius={60}
-                    dataKey="value"
-                    nameKey="name"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {tiposProcessosData.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={COLORS[index % COLORS.length]} 
-                        name={entry.name}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    content={<CustomTooltip 
-                      formatter={(value) => `${value} processos`} 
-                      valueLabel="Quantidade"
-                    />}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex flex-col justify-center">
-              <h4 className="text-sm font-medium mb-4 text-gray-700">Tipos de Processos</h4>
-              <div className="space-y-3">
-                {tiposProcessosData.map((item, index) => (
-                  <div key={index} className="flex items-center">
-                    <div 
-                      className="w-3 h-3 rounded-full mr-2" 
-                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                    />
-                    <span className="text-sm text-gray-700">{item.name}</span>
-                    <span className="ml-auto text-sm text-gray-500">{item.value} ({((item.value / tiposProcessosData.reduce((acc, curr) => acc + curr.value, 0)) * 100).toFixed(0)}%)</span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Total</span>
-                  <span className="text-sm font-medium text-gray-700">
-                    {tiposProcessosData.reduce((acc, curr) => acc + curr.value, 0)} processos
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <CasesChart />
+      <RevenueChart />
+      <CaseTypesPieChart />
     </div>
   );
 };

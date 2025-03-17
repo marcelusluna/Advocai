@@ -15,7 +15,7 @@ const Container: React.FC<ContainerProps> = ({
   return (
     <div 
       className={cn(
-        "w-full px-6 mx-auto max-w-full animate-fade-in",
+        "w-full px-4 mx-auto animate-fade-in overflow-hidden",
         className
       )}
       {...props}

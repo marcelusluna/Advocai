@@ -69,7 +69,7 @@ const NavItem: React.FC<NavItemProps> = ({
             )} />
             {!isCollapsed && (
               <span className={cn(
-                "text-sm font-medium transition-opacity",
+                "text-sm font-medium transition-opacity truncate",
                 isActive ? "text-blue-600" : "text-gray-600"
               )}>
                 {label}
@@ -93,24 +93,24 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
   return (
     <div 
       className={cn(
-        "h-screen bg-white border-r border-gray-200 fixed top-0 left-0 z-10 transition-all duration-300 ease-in-out",
+        "h-screen bg-white border-r border-gray-200 fixed top-0 left-0 z-10 transition-all duration-300 ease-in-out flex flex-col overflow-hidden",
         collapsed ? "w-16" : "w-64"
       )}
     >
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between p-4 border-b border-gray-100">
           {!collapsed ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 overflow-hidden">
               <img 
                 src="/lovable-uploads/c00e8e22-2552-42f7-a22a-8b0f08c510a8.png" 
                 alt="Logo" 
-                className="h-8 w-auto" 
+                className="h-8 w-auto flex-shrink-0" 
               />
-              <div className="flex flex-col">
-                <span className="font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 tracking-tight text-lg">
+              <div className="flex flex-col overflow-hidden">
+                <span className="font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 tracking-tight text-lg truncate">
                   Advoc.AI
                 </span>
-                <span className="text-[10px] text-gray-500 leading-none">Inteligência para Advocacia</span>
+                <span className="text-[10px] text-gray-500 leading-none truncate">Inteligência para Advocacia</span>
               </div>
             </div>
           ) : (
@@ -123,7 +123,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
           <button
             onClick={() => setCollapsed(!collapsed)}
             className={cn(
-              "p-1.5 rounded-md hover:bg-gray-100 transition-colors",
+              "p-1.5 rounded-md hover:bg-gray-100 transition-colors flex-shrink-0",
               collapsed ? "mx-auto" : ""
             )}
             aria-label={collapsed ? "Expandir menu" : "Colapsar menu"}
@@ -156,8 +156,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
           collapsed ? "flex justify-center" : ""
         )}>
           {!collapsed ? (
-            <div className="flex items-center space-x-3">
-              <Avatar className="h-9 w-9">
+            <div className="flex items-center space-x-3 overflow-hidden">
+              <Avatar className="h-9 w-9 flex-shrink-0">
                 <AvatarImage src="" alt="Foto do perfil" />
                 <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">JD</AvatarFallback>
               </Avatar>
@@ -193,10 +193,10 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="w-full justify-start text-sm text-gray-600 border-gray-200 hover:bg-gray-100 hover:text-gray-700 hover:border-gray-300">
                   <Settings className="mr-2 h-4 w-4" />
-                  <span>Configurações</span>
+                  <span className="truncate">Configurações</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-56 z-50">
                 <DropdownMenuItem asChild>
                   <Link to="/profile" className="flex items-center">
                     <User className="mr-2 h-4 w-4" />
@@ -226,7 +226,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
                     <Settings className="h-5 w-5 text-gray-500" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="right">
+                <TooltipContent side="right" className="z-50">
                   <p>Configurações</p>
                 </TooltipContent>
               </Tooltip>
