@@ -17,6 +17,7 @@ import {
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth-context";
 import { Mail, Lock, User } from "lucide-react";
+import Logo from "@/components/ui/logo";
 
 const signupSchema = z.object({
   name: z.string().min(2, { message: "Nome deve ter pelo menos 2 caracteres" }),
@@ -56,10 +57,10 @@ const Signup: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-2 text-primary">Advoc.AI</h1>
-          <p className="text-muted-foreground">Sua plataforma jurídica inteligente</p>
+        <div className="flex justify-center">
+          <Logo size="lg" />
         </div>
+        <p className="text-center text-muted-foreground">Sua plataforma jurídica inteligente</p>
 
         <Card>
           <CardHeader>
