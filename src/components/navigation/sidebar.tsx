@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   Users, 
   Briefcase, 
@@ -13,10 +13,11 @@ import {
   User,
   Settings,
   Building,
-  Search
+  Search,
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { navItems } from "./sidebar-data";
+import { navItems, bottomNavItems } from "./sidebar-data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/auth-context";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -40,6 +42,7 @@ interface NavItemProps {
   href: string;
   isActive: boolean;
   isCollapsed: boolean;
+  onClick?: () => void;
 }
 
 const NavItem: React.FC<NavItemProps> = ({ 
@@ -47,8 +50,54 @@ const NavItem: React.FC<NavItemProps> = ({
   label, 
   href, 
   isActive,
-  isCollapsed
+  isCollapsed,
+  onClick
 }) => {
+  const content = (
+    <>
+      <Icon className={cn(
+        "h-5 w-5",
+        isActive ? "text-blue-600" : "text-gray-500"
+      )} />
+      {!isCollapsed && (
+        <span className={cn(
+          "text-sm font-medium transition-opacity truncate",
+          isActive ? "text-blue-600" : "text-gray-600"
+        )}>
+          {label}
+        </span>
+      )}
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={onClick}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 text-gray-600 w-full text-left",
+                isActive 
+                  ? "bg-blue-50 text-blue-600" 
+                  : "hover:bg-gray-100"
+              )}
+              aria-label={label}
+            >
+              {content}
+            </button>
+          </TooltipTrigger>
+          {isCollapsed && (
+            <TooltipContent side="right">
+              <p>{label}</p>
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
   return (
     <TooltipProvider>
       <Tooltip>
@@ -63,18 +112,7 @@ const NavItem: React.FC<NavItemProps> = ({
             )}
             aria-label={label}
           >
-            <Icon className={cn(
-              "h-5 w-5",
-              isActive ? "text-blue-600" : "text-gray-500"
-            )} />
-            {!isCollapsed && (
-              <span className={cn(
-                "text-sm font-medium transition-opacity truncate",
-                isActive ? "text-blue-600" : "text-gray-600"
-              )}>
-                {label}
-              </span>
-            )}
+            {content}
           </Link>
         </TooltipTrigger>
         {isCollapsed && (
@@ -89,6 +127,11 @@ const NavItem: React.FC<NavItemProps> = ({
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
   const location = useLocation();
+  const { logout } = useAuth();
+  
+  const handleLogout = () => {
+    logout();
+  };
   
   return (
     <div 
@@ -186,6 +229,18 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
             />
           ))}
         </nav>
+        
+        {/* Logout Section */}
+        <div className="px-2 py-2 border-t border-gray-100">
+          <NavItem
+            icon={LogOut}
+            label="Sair"
+            href="#"
+            isActive={false}
+            isCollapsed={collapsed}
+            onClick={handleLogout}
+          />
+        </div>
         
         <div className="mt-auto p-3 border-t border-gray-100">
           {!collapsed ? (
