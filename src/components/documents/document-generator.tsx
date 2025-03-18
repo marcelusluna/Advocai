@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Wand2, Sparkles, Copy, Save, Download } from "lucide-react";
+import { Wand2, Sparkles, Copy, Save, Download, Key, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { generateWithOpenAI } from "@/services/openai-service";
 
 // Modelos de documentos fictícios
 const documentTemplates = [
@@ -47,6 +48,8 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ onDocumentGenerat
   const [documentContent, setDocumentContent] = useState<string>("");
   const [aiPrompt, setAiPrompt] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [openAIKey, setOpenAIKey] = useState<string>("");
+  const [showAPIKey, setShowAPIKey] = useState<boolean>(false);
   const { toast } = useToast();
 
   // Seleção de template
@@ -66,8 +69,8 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ onDocumentGenerat
     }
   };
 
-  // Função para gerar documento com IA (simulação)
-  const generateWithAI = () => {
+  // Função para gerar documento com IA
+  const generateWithAI = async () => {
     if (!aiPrompt.trim()) {
       toast({
         title: "Instruções necessárias",
@@ -77,136 +80,54 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ onDocumentGenerat
       return;
     }
 
+    if (!openAIKey) {
+      toast({
+        title: "Chave de API necessária",
+        description: "Por favor, insira sua chave de API da OpenAI para gerar o documento.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
     
-    // Simulação de delay para parecer que está processando
-    setTimeout(() => {
-      // Gerando conteúdo baseado no template e nas instruções
-      let generatedContent = "";
+    try {
+      // Construir prompt para o ChatGPT
       const template = documentTemplates.find(t => t.id === selectedTemplate);
       const client = clientsList.find(c => c.id === selectedClient);
       
-      if (template?.category === "Petição") {
-        generatedContent = `EXCELENTÍSSIMO(A) SENHOR(A) DOUTOR(A) JUIZ(A) DE DIREITO DA VARA CÍVEL DA COMARCA DE SÃO PAULO/SP
-
-Processo nº ${selectedCase ? casesList.find(c => c.id === selectedCase)?.number : "_______________"}
-
-${client?.name || "[NOME DO CLIENTE]"}, brasileiro(a), inscrito(a) no CPF sob nº XXX.XXX.XXX-XX, com endereço na Rua XXXXX, nº XX, Bairro XXXXX, São Paulo/SP, CEP XXXXX-XXX, por seu advogado que esta subscreve (procuração anexa), vem, respeitosamente, à presença de Vossa Excelência, com fundamento no artigo 319 do Código de Processo Civil, propor a presente
-
-AÇÃO ${aiPrompt.includes("cobrança") ? "DE COBRANÇA" : aiPrompt.includes("indenização") ? "DE INDENIZAÇÃO POR DANOS MORAIS E MATERIAIS" : "ORDINÁRIA"}
-
-em face de EMPRESA REQUERIDA LTDA., pessoa jurídica de direito privado, inscrita no CNPJ sob o nº XX.XXX.XXX/0001-XX, com sede na Rua XXXXX, nº XX, Bairro XXXXX, São Paulo/SP, CEP XXXXX-XXX, pelos fatos e fundamentos a seguir expostos.
-
-I - DOS FATOS
-
-${aiPrompt.includes("contrato") ? 
-"No dia XX/XX/XXXX, o Requerente firmou contrato de prestação de serviços com a Requerida, conforme documento anexo. De acordo com o instrumento, a Requerida se comprometeu a prestar os serviços de XXXXX, mediante o pagamento de R$ X.XXX,XX, a ser pago em X parcelas mensais." 
-: 
-"Em XX/XX/XXXX, o Requerente sofreu danos em razão da conduta da Requerida, quando XXXXX. Os fatos narrados causaram ao Requerente prejuízos de ordem material e moral, conforme será demonstrado."}
-
-II - DO DIREITO
-
-${aiPrompt.includes("consumidor") ? 
-"A relação jurídica estabelecida entre as partes é de consumo, aplicando-se, portanto, as disposições do Código de Defesa do Consumidor, em especial os artigos 2º e 3º." 
-: 
-"Aplica-se ao caso em tela as disposições do Código Civil, em especial os artigos relacionados à responsabilidade civil e ao cumprimento das obrigações contratuais."}
-
-III - DOS PEDIDOS
-
-Ante o exposto, requer:
-
-a) A citação da Requerida, no endereço indicado, para, querendo, apresentar defesa, sob pena de revelia;
-b) A procedência da ação para condenar a Requerida ao pagamento de R$ XX.XXX,XX, a título de ${aiPrompt.includes("danos") ? "indenização por danos morais e materiais" : "valores devidos acrescidos de juros e correção monetária"};
-c) A condenação da Requerida ao pagamento das custas processuais e honorários advocatícios, estes fixados em 20% sobre o valor da condenação.
-
-Dá-se à causa o valor de R$ XX.XXX,XX.
-
-Termos em que,
-Pede deferimento.
-
-São Paulo, ${new Date().toLocaleDateString('pt-BR')}
-
-_______________________________
-ADVOGADO(A)
-OAB/XX nº XXXXX`;
-      } else if (template?.category === "Contrato") {
-        generatedContent = `CONTRATO DE PRESTAÇÃO DE SERVIÇOS ADVOCATÍCIOS
-
-Pelo presente instrumento particular, de um lado:
-
-${client?.name || "[NOME DO CLIENTE]"}, brasileiro(a), inscrito(a) no CPF sob nº XXX.XXX.XXX-XX, com endereço na Rua XXXXX, nº XX, Bairro XXXXX, São Paulo/SP, CEP XXXXX-XXX, doravante denominado CONTRATANTE,
-
-e de outro lado:
-
-ESCRITÓRIO DE ADVOCACIA LTDA., inscrito no CNPJ sob o nº XX.XXX.XXX/0001-XX, com sede na Rua XXXXX, nº XX, Bairro XXXXX, São Paulo/SP, CEP XXXXX-XXX, neste ato representado por seu sócio [NOME DO ADVOGADO], inscrito na OAB/XX sob o nº XXXXX, doravante denominado CONTRATADO,
-
-têm entre si justo e contratado o seguinte:
-
-CLÁUSULA PRIMEIRA - DO OBJETO
-
-O presente contrato tem por objeto a prestação de serviços advocatícios pelo CONTRATADO ao CONTRATANTE, relativos ${aiPrompt.includes("tributário") ? "à consultoria e assessoria jurídica em matéria tributária" : aiPrompt.includes("trabalhista") ? "à defesa dos interesses do CONTRATANTE em processos trabalhistas" : "ao patrocínio da causa judicial referente a [DESCRIÇÃO]"}, compreendendo:
-
-${aiPrompt.includes("consultoria") ? 
-"a) Consultoria jurídica na área específica;\nb) Elaboração de pareceres;\nc) Análise de documentos e contratos;" 
-: 
-"a) Elaboração e protocolo de peças processuais;\nb) Acompanhamento de audiências;\nc) Interposição dos recursos cabíveis;"}
-
-CLÁUSULA SEGUNDA - DOS HONORÁRIOS
-
-Pelos serviços descritos na Cláusula Primeira, o CONTRATANTE pagará ao CONTRATADO o valor de R$ XX.XXX,XX (valor por extenso), a ser pago da seguinte forma:
-
-${aiPrompt.includes("mensal") ? 
-"a) Honorários mensais no valor de R$ X.XXX,XX (valor por extenso), a serem pagos todo dia XX de cada mês, mediante depósito na conta corrente do CONTRATADO."
-: 
-"a) Entrada no valor de R$ X.XXX,XX (valor por extenso), a ser pago no ato da assinatura deste contrato;\nb) O saldo remanescente em X parcelas iguais e sucessivas de R$ X.XXX,XX (valor por extenso), vencendo a primeira em XX/XX/XXXX."}
-
-CLÁUSULA TERCEIRA - DOS HONORÁRIOS DE ÊXITO
-
-${aiPrompt.includes("êxito") ? 
-"Além dos honorários fixados na Cláusula Segunda, o CONTRATANTE pagará ao CONTRATADO honorários de êxito correspondentes a XX% (percentual por extenso) sobre o proveito econômico obtido."
-:
-"Não serão devidos honorários de êxito."}
-
-CLÁUSULA QUARTA - DA VIGÊNCIA
-
-${aiPrompt.includes("indeterminado") ? 
-"O presente contrato vigorará por prazo indeterminado, podendo ser rescindido por qualquer das partes mediante notificação prévia de 30 (trinta) dias."
-:
-"O presente contrato vigorará pelo prazo de XX (prazo por extenso) meses, iniciando-se na data de sua assinatura e encerrando-se em XX/XX/XXXX."}
-
-CLÁUSULA QUINTA - DAS DISPOSIÇÕES GERAIS
-
-As partes elegem o foro da Comarca de São Paulo/SP para dirimir quaisquer dúvidas oriundas do presente contrato, com renúncia expressa a qualquer outro, por mais privilegiado que seja.
-
-E, por estarem assim justas e contratadas, as partes assinam o presente instrumento em 2 (duas) vias de igual teor e forma, na presença das testemunhas abaixo.
-
-São Paulo, ${new Date().toLocaleDateString('pt-BR')}
-
-_______________________________
-CONTRATANTE
-
-_______________________________
-CONTRATADO
-
-TESTEMUNHAS:
-
-1. _______________________________
-Nome:
-CPF:
-
-2. _______________________________
-Nome:
-CPF:`;
-      }
+      const prompt = `
+      Crie um documento jurídico do tipo "${template?.name || "documento jurídico"}" 
+      com o título "${documentTitle || "Documento sem título"}".
       
-      setDocumentContent(generatedContent);
+      ${client ? `Cliente: ${client.name}` : ""}
+      ${selectedCase ? `Relacionado ao processo: ${casesList.find(c => c.id === selectedCase)?.title || ""}` : ""}
+      
+      Instruções específicas: ${aiPrompt}
+      
+      Por favor, formate o documento conforme as normas jurídicas brasileiras, incluindo todos os elementos necessários para este tipo de documento.
+      `;
+
+      const systemPrompt = `Você é um advogado brasileiro altamente qualificado, especializado em redigir documentos jurídicos conforme as normas brasileiras. Sua tarefa é criar um documento jurídico profissional com base nas informações fornecidas pelo usuário.`;
+
+      // Chamar a API do OpenAI
+      const generatedText = await generateWithOpenAI(openAIKey, prompt, systemPrompt);
+      
+      setDocumentContent(generatedText);
       setIsGenerating(false);
       
       toast({
         title: "Documento gerado com sucesso!",
         description: "O texto foi criado com base nas suas instruções.",
       });
-    }, 2000);
+    } catch (error) {
+      setIsGenerating(false);
+      toast({
+        title: "Erro ao gerar documento",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao se comunicar com a API da OpenAI.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Salvar documento
@@ -325,6 +246,32 @@ CPF:`;
           </TabsContent>
           
           <TabsContent value="ai" className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="openai-key-doc">Chave de API da OpenAI</Label>
+              <div className="flex">
+                <Input
+                  id="openai-key-doc"
+                  type={showAPIKey ? "text" : "password"}
+                  value={openAIKey}
+                  onChange={(e) => setOpenAIKey(e.target.value)}
+                  placeholder="sk-..."
+                  className="pr-10"
+                />
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="icon" 
+                  className="-ml-10"
+                  onClick={() => setShowAPIKey(!showAPIKey)}
+                >
+                  {showAPIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                A chave é usada apenas para esta sessão e não será armazenada.
+              </p>
+            </div>
+            
             <div className="space-y-2">
               <Label htmlFor="ai-prompt">Instruções para a IA</Label>
               <Textarea 

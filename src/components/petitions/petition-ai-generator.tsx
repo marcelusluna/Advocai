@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Wand2, Save, Download, Copy, FileText } from "lucide-react";
+import { Sparkles, Wand2, Save, Download, Copy, FileText, Key, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { generateWithOpenAI } from "@/services/openai-service";
 
 const petitionTypes = [
   { id: "initial", name: "Petição Inicial" },
@@ -39,9 +40,11 @@ const PetitionAIGenerator: React.FC = () => {
   const [additionalInstructions, setAdditionalInstructions] = useState("");
   const [generatedPetition, setGeneratedPetition] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [openAIKey, setOpenAIKey] = useState("");
+  const [showAPIKey, setShowAPIKey] = useState(false);
   const { toast } = useToast();
 
-  const handleGeneratePetition = () => {
+  const handleGeneratePetition = async () => {
     if (!petitionTitle || !petitionType || !lawArea || !caseDescription) {
       toast({
         title: "Campos obrigatórios",
@@ -51,122 +54,51 @@ const PetitionAIGenerator: React.FC = () => {
       return;
     }
 
+    if (!openAIKey) {
+      toast({
+        title: "Chave de API necessária",
+        description: "Por favor, insira sua chave de API da OpenAI para gerar a petição.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
     
-    // Simulating AI petition generation with a timeout
-    setTimeout(() => {
-      // Template generation based on petition type
-      let generatedText = "";
+    try {
+      // Construir prompt para o ChatGPT
+      const prompt = `
+      Crie uma ${petitionType === "initial" ? "Petição Inicial" : 
+                 petitionType === "appeal" ? "Recurso de Apelação" : 
+                 petitionType === "defense" ? "Contestação" : 
+                 petitionType === "counterclaim" ? "Reconvenção" : 
+                 petitionType === "injunction" ? "Medida Cautelar" : 
+                 petitionType === "habeas_corpus" ? "Habeas Corpus" : 
+                 "Mandado de Segurança"} 
+      na área de ${lawArea === "civil" ? "Direito Civil" : 
+                  lawArea === "consumer" ? "Direito do Consumidor" : 
+                  lawArea === "labor" ? "Direito Trabalhista" : 
+                  lawArea === "criminal" ? "Direito Penal" : 
+                  lawArea === "tax" ? "Direito Tributário" : 
+                  lawArea === "administrative" ? "Direito Administrativo" : 
+                  "Direito de Família"}.
       
-      if (petitionType === "initial") {
-        generatedText = `EXCELENTÍSSIMO(A) SENHOR(A) DOUTOR(A) JUIZ(A) DE DIREITO DA VARA CÍVEL DA COMARCA DE SÃO PAULO/SP
+      Título da petição: ${petitionTitle}
+      
+      Descrição do caso: ${caseDescription}
+      
+      Cliente: ${clientName || "[NOME DO CLIENTE]"}
+      Parte contrária: ${opposingParty || "[NOME DA PARTE CONTRÁRIA]"}
+      
+      Instruções adicionais: ${additionalInstructions || "Nenhuma instrução adicional."}
+      
+      Por favor, formate a petição conforme as normas jurídicas brasileiras, incluindo cabeçalho, endereçamento, qualificação das partes, dos fatos, fundamentos jurídicos, pedidos e fechamento.
+      `;
 
-${clientName || "[NOME DO CLIENTE]"}, [nacionalidade], [estado civil], [profissão], inscrito(a) no CPF sob nº XXX.XXX.XXX-XX, residente e domiciliado(a) na [endereço completo], por seu advogado que esta subscreve (procuração anexa), vem, respeitosamente, à presença de Vossa Excelência, com fundamento no artigo 319 do Código de Processo Civil, propor a presente
+      const systemPrompt = `Você é um advogado brasileiro altamente qualificado, especializado em redigir documentos jurídicos conforme as normas brasileiras. Sua tarefa é criar uma petição juridicamente precisa e profissional com base nas informações fornecidas pelo usuário.`;
 
-${petitionTitle.toUpperCase()}
-
-em face de ${opposingParty || "[NOME DA PARTE CONTRÁRIA]"}, [qualificação completa], pelos fatos e fundamentos a seguir expostos.
-
-I - DOS FATOS
-
-${caseDescription}
-
-II - DO DIREITO
-
-${lawArea === "consumer" ? 
-  "Aplica-se à presente demanda o Código de Defesa do Consumidor, em seu artigo 2º e seguintes. A relação estabelecida entre as partes é nitidamente de consumo, sendo o autor consumidor e o réu fornecedor, nos termos da legislação consumerista." 
-  : 
-  "Conforme estabelecido pelo ordenamento jurídico brasileiro, especialmente o Código Civil em seus artigos pertinentes, a conduta da parte ré configura ilícito civil passível de reparação."}
-
-III - DOS PEDIDOS
-
-Ante o exposto, requer:
-
-a) A citação da parte Ré para, querendo, apresentar defesa, sob pena de revelia;
-b) A procedência da ação, condenando-se a parte Ré a [especificar pedidos];
-c) A condenação da parte Ré ao pagamento de custas processuais e honorários advocatícios;
-d) A produção de todas as provas em direito admitidas.
-
-Dá-se à causa o valor de R$ [valor].
-
-Termos em que,
-Pede deferimento.
-
-[Cidade], [data].
-
-[Advogado]
-OAB/XX nº XXXXX`;
-      } else if (petitionType === "appeal") {
-        generatedText = `EXCELENTÍSSIMO(A) SENHOR(A) DOUTOR(A) DESEMBARGADOR(A) PRESIDENTE DO EGRÉGIO TRIBUNAL DE JUSTIÇA DO ESTADO DE SÃO PAULO
-
-Processo nº [número do processo]
-
-${clientName || "[NOME DO CLIENTE]"}, já qualificado(a) nos autos do processo em epígrafe, por seu advogado que esta subscreve, vem, respeitosamente, perante Vossa Excelência, com fundamento no art. 1.009 e seguintes do Código de Processo Civil, interpor o presente
-
-RECURSO DE APELAÇÃO
-
-em face da r. sentença de fls. [número das folhas], que julgou [procedente/improcedente] o pedido inicial, requerendo o seu processamento e posterior remessa ao Egrégio Tribunal de Justiça, pelos fundamentos de fato e de direito a seguir expostos.
-
-I - DA TEMPESTIVIDADE
-
-O presente recurso é tempestivo, tendo em vista que a intimação da r. sentença ocorreu em [data], iniciando-se o prazo recursal em [data] e findando-se em [data].
-
-II - SÍNTESE DA DEMANDA
-
-${caseDescription}
-
-III - DAS RAZÕES DE REFORMA
-
-${additionalInstructions || "Exposição detalhada dos motivos pelos quais a sentença deve ser reformada."}
-
-IV - DO PEDIDO
-
-Ante o exposto, requer o conhecimento e provimento do presente recurso, reformando-se integralmente a r. sentença recorrida para [especificar pedido].
-
-Termos em que,
-Pede deferimento.
-
-[Cidade], [data].
-
-[Advogado]
-OAB/XX nº XXXXX`;
-      } else {
-        generatedText = `[CABEÇALHO CONFORME TIPO DE PETIÇÃO: ${petitionTitle}]
-
-PROCESSO Nº: [NÚMERO DO PROCESSO]
-REQUERENTE: ${clientName || "[NOME DO CLIENTE]"}
-REQUERIDO: ${opposingParty || "[NOME DA PARTE CONTRÁRIA]"}
-
-EXCELENTÍSSIMO(A) SENHOR(A) DOUTOR(A) JUIZ(A) DE DIREITO DA [VARA/COMARCA]
-
-${clientName || "[NOME DO CLIENTE]"}, já qualificado(a) nos autos do processo em epígrafe, por seu advogado que esta subscreve, vem, respeitosamente, à presença de Vossa Excelência, expor e requerer o que segue:
-
-I - DOS FATOS
-
-${caseDescription}
-
-II - DO DIREITO
-
-[Fundamentação jurídica específica para ${lawArea}]
-
-${additionalInstructions ? `III - ${additionalInstructions.toUpperCase()}` : ""}
-
-IV - DOS PEDIDOS
-
-Diante do exposto, requer a Vossa Excelência:
-
-a) [Descrição do pedido principal];
-b) [Descrição de pedidos acessórios];
-c) [Outros pedidos pertinentes].
-
-Termos em que,
-Pede deferimento.
-
-[Cidade], [data].
-
-[Advogado]
-OAB/XX nº XXXXX`;
-      }
+      // Chamar a API do OpenAI
+      const generatedText = await generateWithOpenAI(openAIKey, prompt, systemPrompt);
       
       setGeneratedPetition(generatedText);
       setIsGenerating(false);
@@ -175,7 +107,14 @@ OAB/XX nº XXXXX`;
         title: "Petição gerada com sucesso!",
         description: "Sua petição foi gerada pela IA. Revise o conteúdo antes de utilizar.",
       });
-    }, 2000);
+    } catch (error) {
+      setIsGenerating(false);
+      toast({
+        title: "Erro ao gerar petição",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao se comunicar com a API da OpenAI.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCopy = () => {
@@ -214,6 +153,32 @@ OAB/XX nº XXXXX`;
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="openai-key">Chave de API da OpenAI</Label>
+            <div className="flex">
+              <Input
+                id="openai-key"
+                type={showAPIKey ? "text" : "password"}
+                value={openAIKey}
+                onChange={(e) => setOpenAIKey(e.target.value)}
+                placeholder="sk-..."
+                className="pr-10"
+              />
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon" 
+                className="-ml-10"
+                onClick={() => setShowAPIKey(!showAPIKey)}
+              >
+                {showAPIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              A chave é usada apenas para esta sessão e não será armazenada.
+            </p>
+          </div>
+          
           <div className="space-y-1.5">
             <Label htmlFor="petition-title">Título da Petição *</Label>
             <Input
