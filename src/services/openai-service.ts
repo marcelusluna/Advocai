@@ -1,4 +1,3 @@
-
 interface OpenAICompletionRequest {
   model: string;
   messages: Array<{
@@ -17,8 +16,8 @@ interface OpenAICompletionResponse {
   }>;
 }
 
-// Hardcoded API key - in a production environment, this would be stored securely
-const OPENAI_API_KEY = "sk-your-openai-key-here";
+// Chave da API OpenAI - em um ambiente de produção, isso seria armazenado de forma segura
+const OPENAI_API_KEY = "sua-chave-api-aqui";
 
 export const generateWithOpenAI = async (
   prompt: string,
