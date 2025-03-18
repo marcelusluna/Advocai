@@ -6,7 +6,8 @@ import {
   FilePen, 
   DollarSign,
   Home,
-  BookOpen
+  BookOpen,
+  LogOut
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -24,4 +25,8 @@ export const navItems: NavItem[] = [
   { icon: FilePen, label: "Contratos", href: "/contracts" },
   { icon: BookOpen, label: "Petições e Jurisprudência", href: "/petition-generator" },
   { icon: DollarSign, label: "Honorários", href: "/billing" },
+];
+
+export const bottomNavItems: NavItem[] = [
+  { icon: LogOut, label: "Sair", href: "/logout" },
 ];
