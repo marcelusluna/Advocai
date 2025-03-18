@@ -3,8 +3,6 @@ import React, { useState } from "react";
 import MainLayout from "@/layouts/main-layout";
 import Container from "@/components/ui/container";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import JurisprudenceSearch from "@/components/petitions/jurisprudence-search";
 import PetitionAIGenerator from "@/components/petitions/petition-ai-generator";
