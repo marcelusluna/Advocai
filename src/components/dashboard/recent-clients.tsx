@@ -1,4 +1,3 @@
-
 import React, { useState, useContext } from "react";
 import { Users, Plus, Search, Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -62,11 +61,6 @@ const RecentClients: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [showFilterDialog, setShowFilterDialog] = useState(false);
-  const [newClient, setNewClient] = useState({
-    name: "",
-    email: "",
-    type: "Pessoa Física"
-  });
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   
   const { toast } = useToast();
@@ -153,7 +147,26 @@ const RecentClients: React.FC = () => {
         },
       ],
       submitLabel: "Adicionar Cliente",
-      entityType: "client"
+      entityType: "client",
+      onSubmit: (formData) => {
+        const newClientData = {
+          id: (clients.length + 1).toString(),
+          name: formData.name,
+          email: formData.email,
+          type: formData.type || "Pessoa Física",
+          date: "Agora",
+          status: "ativo"
+        };
+        
+        const updatedClients = [newClientData, ...clients];
+        setClients(updatedClients);
+        setFilteredClients(updatedClients);
+        
+        toast({
+          title: "Cliente adicionado",
+          description: `${formData.name} foi adicionado com sucesso.`
+        });
+      }
     });
   };
 
