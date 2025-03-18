@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Wand2, Save, Download, Copy, FileText, Key, Eye, EyeOff } from "lucide-react";
+import { Sparkles, Wand2, Save, Download, Copy, FileText } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { generateWithOpenAI } from "@/services/openai-service";
 
@@ -40,8 +40,6 @@ const PetitionAIGenerator: React.FC = () => {
   const [additionalInstructions, setAdditionalInstructions] = useState("");
   const [generatedPetition, setGeneratedPetition] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [openAIKey, setOpenAIKey] = useState("");
-  const [showAPIKey, setShowAPIKey] = useState(false);
   const { toast } = useToast();
 
   const handleGeneratePetition = async () => {
@@ -49,15 +47,6 @@ const PetitionAIGenerator: React.FC = () => {
       toast({
         title: "Campos obrigatórios",
         description: "Por favor, preencha todos os campos obrigatórios para gerar a petição.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!openAIKey) {
-      toast({
-        title: "Chave de API necessária",
-        description: "Por favor, insira sua chave de API da OpenAI para gerar a petição.",
         variant: "destructive",
       });
       return;
@@ -98,7 +87,7 @@ const PetitionAIGenerator: React.FC = () => {
       const systemPrompt = `Você é um advogado brasileiro altamente qualificado, especializado em redigir documentos jurídicos conforme as normas brasileiras. Sua tarefa é criar uma petição juridicamente precisa e profissional com base nas informações fornecidas pelo usuário.`;
 
       // Chamar a API do OpenAI
-      const generatedText = await generateWithOpenAI(openAIKey, prompt, systemPrompt);
+      const generatedText = await generateWithOpenAI(prompt, systemPrompt);
       
       setGeneratedPetition(generatedText);
       setIsGenerating(false);
@@ -153,32 +142,6 @@ const PetitionAIGenerator: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="openai-key">Chave de API da OpenAI</Label>
-            <div className="flex">
-              <Input
-                id="openai-key"
-                type={showAPIKey ? "text" : "password"}
-                value={openAIKey}
-                onChange={(e) => setOpenAIKey(e.target.value)}
-                placeholder="sk-..."
-                className="pr-10"
-              />
-              <Button 
-                type="button" 
-                variant="ghost" 
-                size="icon" 
-                className="-ml-10"
-                onClick={() => setShowAPIKey(!showAPIKey)}
-              >
-                {showAPIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              A chave é usada apenas para esta sessão e não será armazenada.
-            </p>
-          </div>
-          
           <div className="space-y-1.5">
             <Label htmlFor="petition-title">Título da Petição *</Label>
             <Input

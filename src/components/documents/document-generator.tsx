@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Wand2, Sparkles, Copy, Save, Download, Key, Eye, EyeOff } from "lucide-react";
+import { Wand2, Sparkles, Copy, Save, Download, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -48,8 +48,6 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ onDocumentGenerat
   const [documentContent, setDocumentContent] = useState<string>("");
   const [aiPrompt, setAiPrompt] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  const [openAIKey, setOpenAIKey] = useState<string>("");
-  const [showAPIKey, setShowAPIKey] = useState<boolean>(false);
   const { toast } = useToast();
 
   // Seleção de template
@@ -80,15 +78,6 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ onDocumentGenerat
       return;
     }
 
-    if (!openAIKey) {
-      toast({
-        title: "Chave de API necessária",
-        description: "Por favor, insira sua chave de API da OpenAI para gerar o documento.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsGenerating(true);
     
     try {
@@ -111,7 +100,7 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ onDocumentGenerat
       const systemPrompt = `Você é um advogado brasileiro altamente qualificado, especializado em redigir documentos jurídicos conforme as normas brasileiras. Sua tarefa é criar um documento jurídico profissional com base nas informações fornecidas pelo usuário.`;
 
       // Chamar a API do OpenAI
-      const generatedText = await generateWithOpenAI(openAIKey, prompt, systemPrompt);
+      const generatedText = await generateWithOpenAI(prompt, systemPrompt);
       
       setDocumentContent(generatedText);
       setIsGenerating(false);
@@ -247,32 +236,6 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ onDocumentGenerat
           
           <TabsContent value="ai" className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="openai-key-doc">Chave de API da OpenAI</Label>
-              <div className="flex">
-                <Input
-                  id="openai-key-doc"
-                  type={showAPIKey ? "text" : "password"}
-                  value={openAIKey}
-                  onChange={(e) => setOpenAIKey(e.target.value)}
-                  placeholder="sk-..."
-                  className="pr-10"
-                />
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="icon" 
-                  className="-ml-10"
-                  onClick={() => setShowAPIKey(!showAPIKey)}
-                >
-                  {showAPIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                A chave é usada apenas para esta sessão e não será armazenada.
-              </p>
-            </div>
-            
-            <div className="space-y-2">
               <Label htmlFor="ai-prompt">Instruções para a IA</Label>
               <Textarea 
                 id="ai-prompt" 
@@ -358,7 +321,13 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ onDocumentGenerat
       </CardContent>
       <CardFooter className="flex justify-between">
         <div>
-          <Button variant="outline" className="mr-2">
+          <Button variant="outline" className="mr-2" onClick={() => {
+            navigator.clipboard.writeText(documentContent);
+            toast({
+              title: "Copiado!",
+              description: "O texto do documento foi copiado para a área de transferência.",
+            });
+          }}>
             <Copy className="mr-2 h-4 w-4" />
             Copiar
           </Button>

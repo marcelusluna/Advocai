@@ -20,11 +20,11 @@ const PetitionGenerator: React.FC = () => {
             <div>
               <h1 className="text-3xl font-bold tracking-tight mb-2">Gerador de Petições com IA</h1>
               <p className="text-muted-foreground">
-                Crie petições jurídicas com o poder da OpenAI e pesquise jurisprudência relevante
+                Crie petições jurídicas com o poder da IA e pesquise jurisprudência relevante
               </p>
               <p className="text-sm text-primary mt-2 flex items-center">
                 <Sparkles className="h-4 w-4 mr-1" />
-                Agora com integração direta com a API do ChatGPT para resultados mais precisos
+                Sistema com IA integrada para resultados mais precisos e eficientes
               </p>
             </div>
           </div>

@@ -17,16 +17,14 @@ interface OpenAICompletionResponse {
   }>;
 }
 
+// Hardcoded API key - in a production environment, this would be stored securely
+const OPENAI_API_KEY = "sk-your-openai-key-here";
+
 export const generateWithOpenAI = async (
-  apiKey: string,
   prompt: string,
   systemPrompt: string = "Você é um advogado experiente especializado em redigir documentos jurídicos precisos e profissionais."
 ): Promise<string> => {
   try {
-    if (!apiKey) {
-      throw new Error("API key não fornecida");
-    }
-
     const payload: OpenAICompletionRequest = {
       model: "gpt-3.5-turbo",
       messages: [
@@ -47,7 +45,7 @@ export const generateWithOpenAI = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
+        "Authorization": `Bearer ${OPENAI_API_KEY}`
       },
       body: JSON.stringify(payload)
     });
