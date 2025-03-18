@@ -5,7 +5,8 @@ import {
   FileText, 
   FilePen, 
   DollarSign,
-  Home
+  Home,
+  Wand2
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -21,5 +22,6 @@ export const navItems: NavItem[] = [
   { icon: Briefcase, label: "Processos", href: "/cases" },
   { icon: FileText, label: "Documentos", href: "/documents" },
   { icon: FilePen, label: "Contratos", href: "/contracts" },
+  { icon: Wand2, label: "Gerador de Petições", href: "/petition-generator" },
   { icon: DollarSign, label: "Honorários", href: "/billing" },
 ];
