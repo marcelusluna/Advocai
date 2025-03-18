@@ -9,13 +9,13 @@ interface LogoProps {
 
 const Logo: React.FC<LogoProps> = ({ className, size = "md" }) => {
   const sizeClasses = {
-    sm: "h-8 w-8",
-    md: "h-12 w-12",
-    lg: "h-16 w-16",
+    sm: "h-10 w-10",
+    md: "h-16 w-16",
+    lg: "h-24 w-24",
   };
 
   return (
-    <div className={cn("flex items-center gap-3", className)}>
+    <div className={cn("flex flex-col items-center gap-2", className)}>
       <img 
         src="/lovable-uploads/4628b0e1-0f3e-4223-8f42-093d31640010.png" 
         alt="Advoc.AI Logo" 
