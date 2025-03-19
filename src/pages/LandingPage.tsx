@@ -296,7 +296,7 @@ const LandingPage: React.FC = () => {
           </div>
 
           <div className="bg-white p-8 rounded-lg shadow-lg">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div className="grid grid-cols-1 gap-8">
               <div>
                 <h3 className="text-2xl font-bold mb-4">Resultados Comprovados</h3>
                 <p className="text-gray-600 mb-6">
@@ -331,13 +331,6 @@ const LandingPage: React.FC = () => {
                     </div>
                   </li>
                 </ul>
-              </div>
-              <div className="hidden md:block">
-                <img 
-                  src="/lovable-uploads/4628b0e1-0f3e-4223-8f42-093d31640010.png" 
-                  alt="Advoc.AI em uso" 
-                  className="rounded-lg shadow-lg w-full object-cover"
-                />
               </div>
             </div>
           </div>
