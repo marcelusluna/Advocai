@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import Logo from "@/components/ui/logo";
 import Container from "@/components/ui/container";
 import { cn } from "@/lib/utils";
-import { Check, FileText, Users, Shield, DollarSign, Scale, Clock, MessageSquare, Brain, TrendingUp, Lightbulb } from "lucide-react";
+import { Check, FileText, Users, Shield, DollarSign, Scale, Clock, MessageSquare, Brain, TrendingUp, Lightbulb, Lock } from "lucide-react";
 import CheckoutDialog from "@/components/checkout/checkout-dialog";
 
 const LandingPage: React.FC = () => {
@@ -295,42 +295,67 @@ const LandingPage: React.FC = () => {
             </div>
           </div>
 
+          {/* New Results Section based on provided image */}
           <div className="bg-white p-8 rounded-lg shadow-lg">
-            <div className="grid grid-cols-1 gap-8">
-              <div>
-                <h3 className="text-2xl font-bold mb-4">Resultados Comprovados</h3>
-                <p className="text-gray-600 mb-6">
-                  Escritórios jurídicos que adotam o Advoc.AI relatam:
-                </p>
-                <ul className="space-y-4">
-                  <li className="flex items-start">
-                    <div className="bg-primary/10 p-2 rounded-full mr-4">
-                      <Scale className="h-6 w-6 text-primary" />
+            <div className="flex flex-col md:flex-row gap-12">
+              {/* Left Column - Headline */}
+              <div className="md:w-1/2">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-3 h-3 bg-blue-600 rounded-sm"></div>
+                  <span className="font-medium text-gray-600">Advoc.AI é diferente</span>
+                </div>
+                <h3 className="text-3xl font-bold text-blue-600 leading-tight mb-3">
+                  A única solução 100% focada em 
+                  <span className="text-gray-900"> gestão jurídica para escritórios de advocacia em crescimento</span>
+                </h3>
+              </div>
+
+              {/* Right Column - Benefits */}
+              <div className="md:w-1/2 space-y-10">
+                {/* Benefit 1 */}
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                      <FileText className="h-6 w-6" />
                     </div>
-                    <div>
-                      <p className="font-bold">Redução de 40% nos custos operacionais</p>
-                      <p className="text-sm text-gray-600">Automatização de processos administrativos</p>
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold mb-2">Facilidade de uso e implementação</h4>
+                    <p className="text-gray-600">
+                      Autonomia total para configurar do seu jeito sem depender de consultorias ou times técnicos.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Benefit 2 */}
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                      <Lock className="h-6 w-6" />
                     </div>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="bg-primary/10 p-2 rounded-full mr-4">
-                      <Users className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold mb-2">Muito mais que gerenciamento de processos</h4>
+                    <p className="text-gray-600">
+                      Controle completo de documentos e organização de fluxos internos com segurança e agilidade.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Benefit 3 */}
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                      <Brain className="h-6 w-6" />
                     </div>
-                    <div>
-                      <p className="font-bold">Aumento de 35% na retenção de clientes</p>
-                      <p className="text-sm text-gray-600">Atendimento mais ágil e eficiente</p>
-                    </div>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="bg-primary/10 p-2 rounded-full mr-4">
-                      <Shield className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-bold">Redução de 60% em erros documentais</p>
-                      <p className="text-sm text-gray-600">Modelos e validações inteligentes</p>
-                    </div>
-                  </li>
-                </ul>
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold mb-2">Assistência jurídica inteligente</h4>
+                    <p className="text-gray-600">
+                      Potencialize seu conhecimento com análises de jurisprudência e sugestões de estratégias processuais.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
