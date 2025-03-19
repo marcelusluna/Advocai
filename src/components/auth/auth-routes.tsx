@@ -20,7 +20,7 @@ import { useAuth } from "@/contexts/auth-context";
 const AuthRoutes: React.FC = () => {
   const { user } = useAuth();
 
-  // If user is authenticated, redirect to home page from login/signup
+  // If user is authenticated, redirect to dashboard page from login/signup
   const renderAuthRoute = (Component: React.ComponentType) => {
     return user ? <Navigate to="/dashboard" /> : <Component />;
   };
