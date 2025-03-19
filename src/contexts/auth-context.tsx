@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: "Login realizado com sucesso",
           description: "Bem-vindo ao Advoc.AI!",
         });
-        navigate("/dashboard");
+        // Note: Navigation is now handled in the Login component
       } else {
         throw new Error("Invalid credentials");
       }
@@ -69,6 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         variant: "destructive",
       });
       console.error("Login error:", error);
+      throw error; // Re-throw to handle in component
     } finally {
       setIsLoading(false);
     }

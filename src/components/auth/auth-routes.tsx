@@ -22,7 +22,7 @@ const AuthRoutes: React.FC = () => {
 
   // If user is authenticated, redirect to home page from login/signup
   const renderAuthRoute = (Component: React.ComponentType) => {
-    return user ? <Navigate to="/" /> : <Component />;
+    return user ? <Navigate to="/dashboard" /> : <Component />;
   };
 
   return (
