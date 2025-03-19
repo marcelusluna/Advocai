@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import Logo from "@/components/ui/logo";
 import Container from "@/components/ui/container";
 import { cn } from "@/lib/utils";
-import { Check, FileText, Users, BrainCircuit, Shield, DollarSign } from "lucide-react";
+import { Check, FileText, Users, BrainCircuit, Shield, DollarSign, Scale, Clock } from "lucide-react";
 
 const LandingPage: React.FC = () => {
   return (
@@ -33,18 +33,32 @@ const LandingPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-50 to-indigo-50 py-20">
+      {/* Hero Section - Improved */}
+      <section className="bg-gradient-to-r from-blue-50 to-indigo-50 py-24">
         <Container className="max-w-7xl">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
-              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900">
-                Transforme seu escritório de advocacia com IA
+              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+                Gestão Inteligente para Escritórios de Advocacia
               </h1>
-              <p className="text-xl text-gray-600 max-w-md">
-                A plataforma definitiva para escritórios de advocacia, que integra gestão jurídica completa com inteligência artificial.
+              <p className="text-xl text-gray-600 max-w-xl">
+                Revolucione a maneira como seu escritório opera com nossa plataforma completa potencializada por inteligência artificial. Automatize tarefas repetitivas, aumente a produtividade e foque no que realmente importa: seus clientes.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="space-y-4 pt-2">
+                <div className="flex items-start gap-2">
+                  <Check className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700">Reduza em até 70% o tempo gasto em tarefas administrativas</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Check className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700">Aumente a precisão na elaboração de documentos jurídicos</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Check className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700">Centralize toda a informação do seu escritório em um só lugar</span>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4 pt-2">
                 <Link to="/signup">
                   <Button size="lg" className="w-full sm:w-auto">
                     Experimente grátis
