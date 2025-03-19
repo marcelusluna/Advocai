@@ -588,21 +588,12 @@ const LandingPage: React.FC = () => {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <Container className="max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <Logo className="mb-4" />
               <p className="text-gray-400 mb-4">
                 A plataforma jurídica definitiva com inteligência artificial para advogados modernos.
               </p>
-            </div>
-            <div>
-              <h4 className="font-bold text-lg mb-4">Recursos</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white transition">CRM Jurídico</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition">Gestão de Processos</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition">Automação de Documentos</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition">Assistente de IA</a></li>
-              </ul>
             </div>
             <div>
               <h4 className="font-bold text-lg mb-4">Empresa</h4>
