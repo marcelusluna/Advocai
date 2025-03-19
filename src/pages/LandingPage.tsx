@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import Logo from "@/components/ui/logo";
 import Container from "@/components/ui/container";
 import { cn } from "@/lib/utils";
-import { Check, FileText, Users, BrainCircuit, Shield, DollarSign, Scale, Clock, MessageSquare } from "lucide-react";
+import { Check, FileText, Users, Shield, DollarSign, Scale, Clock, MessageSquare } from "lucide-react";
 
 const LandingPage: React.FC = () => {
   return (
