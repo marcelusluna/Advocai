@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -293,7 +292,7 @@ const LandingPage: React.FC = () => {
 
                   <div className="mt-auto">
                     <Link to="/signup?plan=advanced" className="w-full">
-                      <Button className="w-full" variant="default">Escolher plano</Button>
+                      <Button className="w-full">Escolher plano</Button>
                     </Link>
                   </div>
                 </div>
@@ -391,12 +390,12 @@ const LandingPage: React.FC = () => {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link to="/signup">
-                <Button size="lg" className="w-full sm:w-auto bg-white text-primary hover:bg-gray-100">
+                <Button size="lg" className="w-full sm:w-auto">
                   Comece grátis por 14 dias
                 </Button>
               </Link>
               <Link to="/login">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white/10">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto">
                   Entrar na plataforma
                 </Button>
               </Link>
