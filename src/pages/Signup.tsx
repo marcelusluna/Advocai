@@ -1,6 +1,6 @@
 
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useAuth } from "@/contexts/auth-context";
 import { Mail, Lock, User } from "lucide-react";
 import Logo from "@/components/ui/logo";
+import { useToast } from "@/hooks/use-toast";
 
 const signupSchema = z.object({
   name: z.string().min(2, { message: "Nome deve ter pelo menos 2 caracteres" }),
@@ -34,6 +35,33 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 const Signup: React.FC = () => {
   const { signup, isLoading } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Verificar se o usuário completou o checkout
+  const planPurchased = location.state?.planPurchased;
+  const planName = location.state?.planName;
+  
+  useEffect(() => {
+    // Se o usuário não veio de um checkout concluído, redirecionar para a página inicial
+    if (!planPurchased && !location.search.includes('plan=')) {
+      toast({
+        title: "Acesso restrito",
+        description: "Por favor, escolha um plano antes de se cadastrar.",
+        variant: "destructive",
+      });
+      navigate('/');
+    }
+    
+    // Se o usuário concluiu o checkout, exibir mensagem de sucesso
+    if (planPurchased && planName) {
+      toast({
+        title: "Pagamento confirmado",
+        description: `Seu plano ${planName} foi ativado. Complete seu cadastro para acessar a plataforma.`,
+      });
+    }
+  }, [planPurchased, planName, navigate, toast, location.search]);
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -54,6 +82,11 @@ const Signup: React.FC = () => {
     }
   };
 
+  // Se o usuário não concluiu o checkout e não tem um plano na URL, não mostrar o formulário
+  if (!planPurchased && !location.search.includes('plan=')) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <div className="w-full max-w-md space-y-8">
@@ -65,7 +98,9 @@ const Signup: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle>Cadastro</CardTitle>
-            <CardDescription>Crie sua conta para acessar a plataforma</CardDescription>
+            <CardDescription>
+              {planName ? `Crie sua conta para acessar o plano ${planName}` : 'Crie sua conta para acessar a plataforma'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>

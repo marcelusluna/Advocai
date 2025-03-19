@@ -7,13 +7,14 @@ type User = {
   id: string;
   name: string;
   email: string;
+  plan?: string;
 };
 
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  signup: (name: string, email: string, password: string, plan?: string) => Promise<void>;
   logout: () => void;
 };
 
@@ -48,6 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: "1",
           name: email.split("@")[0],
           email,
+          plan: "Avançado", // Poderia vir do backend
         };
         
         localStorage.setItem("user", JSON.stringify(loggedInUser));
@@ -72,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signup = async (name: string, email: string, password: string) => {
+  const signup = async (name: string, email: string, password: string, plan?: string) => {
     setIsLoading(true);
     try {
       // Mock signup - in a real app, this would call an API
@@ -84,6 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: Date.now().toString(),
           name,
           email,
+          plan: plan || "Teste",
         };
         
         localStorage.setItem("user", JSON.stringify(newUser));

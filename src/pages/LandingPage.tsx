@@ -1,13 +1,33 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Logo from "@/components/ui/logo";
 import Container from "@/components/ui/container";
 import { cn } from "@/lib/utils";
 import { Check, FileText, Users, Shield, DollarSign, Scale, Clock, MessageSquare, Brain } from "lucide-react";
+import CheckoutDialog from "@/components/checkout/checkout-dialog";
 
 const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<{name: string, price: string} | null>(null);
+
+  const handlePlanSelect = (plan: {name: string, price: string}) => {
+    setSelectedPlan(plan);
+    setCheckoutOpen(true);
+  };
+
+  const handleCheckoutComplete = () => {
+    setCheckoutOpen(false);
+    navigate("/signup", { 
+      state: { 
+        planPurchased: true, 
+        planName: selectedPlan?.name 
+      } 
+    });
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header/Navigation */}
@@ -239,9 +259,12 @@ const LandingPage: React.FC = () => {
                   </ul>
 
                   <div className="mt-auto">
-                    <Link to="/signup?plan=professional" className="w-full">
-                      <Button className="w-full">Escolher plano</Button>
-                    </Link>
+                    <Button 
+                      onClick={() => handlePlanSelect({name: "Profissional", price: "R$149,90/mês"})} 
+                      className="w-full"
+                    >
+                      Escolher plano
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -291,9 +314,12 @@ const LandingPage: React.FC = () => {
                   </ul>
 
                   <div className="mt-auto">
-                    <Link to="/signup?plan=advanced" className="w-full">
-                      <Button className="w-full">Escolher plano</Button>
-                    </Link>
+                    <Button 
+                      onClick={() => handlePlanSelect({name: "Avançado", price: "R$249,90/mês"})} 
+                      className="w-full"
+                    >
+                      Escolher plano
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -389,11 +415,13 @@ const LandingPage: React.FC = () => {
               Experimente o Advoc.AI hoje e descubra como a tecnologia pode transformar sua prática jurídica.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Link to="/signup">
-                <Button size="lg" className="w-full sm:w-auto">
-                  Comece grátis por 14 dias
-                </Button>
-              </Link>
+              <Button 
+                size="lg" 
+                className="w-full sm:w-auto"
+                onClick={() => handlePlanSelect({name: "Teste", price: "Gratuito por 14 dias"})}
+              >
+                Comece grátis por 14 dias
+              </Button>
               <Link to="/login">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto">
                   Entrar na plataforma
@@ -447,6 +475,17 @@ const LandingPage: React.FC = () => {
           </div>
         </Container>
       </footer>
+
+      {/* Checkout Dialog */}
+      {selectedPlan && (
+        <CheckoutDialog
+          isOpen={checkoutOpen}
+          onClose={() => setCheckoutOpen(false)}
+          onComplete={handleCheckoutComplete}
+          planName={selectedPlan.name}
+          planPrice={selectedPlan.price}
+        />
+      )}
     </div>
   );
 };
