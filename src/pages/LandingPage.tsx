@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import Logo from "@/components/ui/logo";
 import Container from "@/components/ui/container";
 import { cn } from "@/lib/utils";
-import { Check, FileText, Users, Shield, DollarSign, Scale, Clock, MessageSquare, Brain } from "lucide-react";
+import { Check, FileText, Users, Shield, DollarSign, Scale, Clock, MessageSquare, Brain, TrendingUp, Lightbulb } from "lucide-react";
 import CheckoutDialog from "@/components/checkout/checkout-dialog";
 
 const LandingPage: React.FC = () => {
@@ -205,6 +205,141 @@ const LandingPage: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
+          </div>
+        </Container>
+      </section>
+
+      {/* Why Advoc.AI Section - NEW */}
+      <section className="py-20 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <Container className="max-w-7xl">
+          <div className="text-center mb-16">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Por Que Escolher o Advoc.AI?
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Diferenciais exclusivos que transformam a gestão do seu escritório jurídico e potencializam seus resultados.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div className="bg-white p-8 rounded-lg shadow-lg">
+              <div className="flex flex-col h-full">
+                <div className="mb-4 text-primary">
+                  <Clock className="h-10 w-10" />
+                </div>
+                <h3 className="text-xl font-bold mb-3">Economize Tempo</h3>
+                <p className="text-gray-600 mb-4">
+                  Reduza o tempo gasto em tarefas administrativas em até 70%, permitindo que você se dedique mais ao atendimento dos clientes e estratégias jurídicas.
+                </p>
+                <div className="mt-auto">
+                  <ul className="space-y-2">
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm">Automação de documentos em minutos, não horas</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm">Gestão de prazos automatizada</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-8 rounded-lg shadow-lg">
+              <div className="flex flex-col h-full">
+                <div className="mb-4 text-primary">
+                  <TrendingUp className="h-10 w-10" />
+                </div>
+                <h3 className="text-xl font-bold mb-3">Aumente sua Produtividade</h3>
+                <p className="text-gray-600 mb-4">
+                  Atenda mais clientes sem aumentar sua equipe. Nossa IA potencializa a capacidade produtiva do seu escritório com ferramentas que multiplicam sua eficiência.
+                </p>
+                <div className="mt-auto">
+                  <ul className="space-y-2">
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm">Análise de jurisprudência em segundos</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm">Gestão integrada de casos e clientes</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-8 rounded-lg shadow-lg">
+              <div className="flex flex-col h-full">
+                <div className="mb-4 text-primary">
+                  <Lightbulb className="h-10 w-10" />
+                </div>
+                <h3 className="text-xl font-bold mb-3">Diferencial Competitivo</h3>
+                <p className="text-gray-600 mb-4">
+                  Destaque-se no mercado jurídico oferecendo serviços mais ágeis, precisos e com melhor experiência para seus clientes, tornando seu escritório uma referência.
+                </p>
+                <div className="mt-auto">
+                  <ul className="space-y-2">
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm">Portal do cliente para acompanhamento de processos</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm">Relatórios detalhados e personalizáveis</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-8 rounded-lg shadow-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div>
+                <h3 className="text-2xl font-bold mb-4">Resultados Comprovados</h3>
+                <p className="text-gray-600 mb-6">
+                  Escritórios jurídicos que adotam o Advoc.AI relatam:
+                </p>
+                <ul className="space-y-4">
+                  <li className="flex items-start">
+                    <div className="bg-primary/10 p-2 rounded-full mr-4">
+                      <Scale className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-bold">Redução de 40% nos custos operacionais</p>
+                      <p className="text-sm text-gray-600">Automatização de processos administrativos</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="bg-primary/10 p-2 rounded-full mr-4">
+                      <Users className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-bold">Aumento de 35% na retenção de clientes</p>
+                      <p className="text-sm text-gray-600">Atendimento mais ágil e eficiente</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="bg-primary/10 p-2 rounded-full mr-4">
+                      <Shield className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-bold">Redução de 60% em erros documentais</p>
+                      <p className="text-sm text-gray-600">Modelos e validações inteligentes</p>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+              <div className="hidden md:block">
+                <img 
+                  src="/lovable-uploads/4628b0e1-0f3e-4223-8f42-093d31640010.png" 
+                  alt="Advoc.AI em uso" 
+                  className="rounded-lg shadow-lg w-full object-cover"
+                />
+              </div>
+            </div>
           </div>
         </Container>
       </section>
