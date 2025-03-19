@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -29,6 +29,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const Login: React.FC = () => {
   const { login, isLoading } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -42,6 +43,7 @@ const Login: React.FC = () => {
     setError(null);
     try {
       await login(values.email, values.password);
+      navigate("/dashboard");
     } catch (err) {
       setError("Falha no login. Verifique suas credenciais.");
     }
