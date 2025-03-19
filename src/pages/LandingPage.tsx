@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,10 +6,26 @@ import Logo from "@/components/ui/logo";
 import Container from "@/components/ui/container";
 import { cn } from "@/lib/utils";
 import { Check, FileText, Users, Shield, DollarSign, Scale, Clock, MessageSquare, Brain } from "lucide-react";
+import CheckoutDialog from "@/components/checkout/checkout-dialog";
 
 const LandingPage: React.FC = () => {
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<"professional" | "advanced">("professional");
+
+  const handlePlanSelection = (plan: "professional" | "advanced") => {
+    setSelectedPlan(plan);
+    setCheckoutOpen(true);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Checkout Dialog */}
+      <CheckoutDialog 
+        open={checkoutOpen} 
+        onOpenChange={setCheckoutOpen} 
+        plan={selectedPlan} 
+      />
+
       {/* Header/Navigation */}
       <header className="w-full py-4 px-6 bg-white border-b">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -58,11 +74,13 @@ const LandingPage: React.FC = () => {
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                <Link to="/signup">
-                  <Button size="lg" className="w-full sm:w-auto">
-                    Experimente grátis
-                  </Button>
-                </Link>
+                <Button 
+                  size="lg" 
+                  className="w-full sm:w-auto"
+                  onClick={() => handlePlanSelection("professional")}
+                >
+                  Experimente grátis
+                </Button>
                 <a href="#features">
                   <Button size="lg" variant="outline" className="w-full sm:w-auto">
                     Conheça os recursos
@@ -239,9 +257,12 @@ const LandingPage: React.FC = () => {
                   </ul>
 
                   <div className="mt-auto">
-                    <Link to="/signup?plan=professional" className="w-full">
-                      <Button className="w-full">Escolher plano</Button>
-                    </Link>
+                    <Button 
+                      className="w-full"
+                      onClick={() => handlePlanSelection("professional")}
+                    >
+                      Escolher plano
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -291,9 +312,12 @@ const LandingPage: React.FC = () => {
                   </ul>
 
                   <div className="mt-auto">
-                    <Link to="/signup?plan=advanced" className="w-full">
-                      <Button className="w-full">Escolher plano</Button>
-                    </Link>
+                    <Button 
+                      className="w-full"
+                      onClick={() => handlePlanSelection("advanced")}
+                    >
+                      Escolher plano
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -389,11 +413,13 @@ const LandingPage: React.FC = () => {
               Experimente o Advoc.AI hoje e descubra como a tecnologia pode transformar sua prática jurídica.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Link to="/signup">
-                <Button size="lg" className="w-full sm:w-auto">
-                  Comece grátis por 14 dias
-                </Button>
-              </Link>
+              <Button 
+                size="lg" 
+                className="w-full sm:w-auto"
+                onClick={() => handlePlanSelection("professional")}
+              >
+                Comece grátis por 14 dias
+              </Button>
               <Link to="/login">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto">
                   Entrar na plataforma
