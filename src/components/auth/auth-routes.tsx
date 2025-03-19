@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./protected-route";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
+import LandingPage from "@/pages/LandingPage";
 import Index from "@/pages/Index";
 import Clients from "@/pages/Clients";
 import Cases from "@/pages/Cases";
@@ -27,12 +28,13 @@ const AuthRoutes: React.FC = () => {
   return (
     <Routes>
       {/* Public routes */}
+      <Route path="/" element={user ? <Navigate to="/dashboard" /> : <LandingPage />} />
       <Route path="/login" element={renderAuthRoute(Login)} />
       <Route path="/signup" element={renderAuthRoute(Signup)} />
 
       {/* Protected routes */}
       <Route 
-        path="/" 
+        path="/dashboard" 
         element={
           <ProtectedRoute>
             <Index />
