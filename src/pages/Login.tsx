@@ -45,12 +45,9 @@ const Login: React.FC = () => {
     setError(null);
     try {
       await login(values.email, values.password);
-      toast({
-        title: "Login realizado com sucesso",
-        description: "Redirecionando para o dashboard...",
-      });
       navigate("/dashboard");
     } catch (err) {
+      console.error("Login error:", err);
       setError("Falha no login. Verifique suas credenciais.");
     }
   };
