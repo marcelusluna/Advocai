@@ -14,6 +14,7 @@ import Billing from "@/pages/Billing";
 import Profile from "@/pages/Profile";
 import Office from "@/pages/Office";
 import NotFound from "@/pages/NotFound";
+import LandingPage from "@/pages/LandingPage";
 import { useAuth } from "@/contexts/auth-context";
 
 const AuthRoutes: React.FC = () => {
@@ -26,13 +27,16 @@ const AuthRoutes: React.FC = () => {
 
   return (
     <Routes>
+      {/* Landing page route */}
+      <Route path="/" element={<LandingPage />} />
+      
       {/* Public routes */}
       <Route path="/login" element={renderAuthRoute(Login)} />
       <Route path="/signup" element={renderAuthRoute(Signup)} />
 
       {/* Protected routes */}
       <Route 
-        path="/" 
+        path="/dashboard" 
         element={
           <ProtectedRoute>
             <Index />

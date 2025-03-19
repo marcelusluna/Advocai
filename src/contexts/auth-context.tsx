@@ -56,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: "Login realizado com sucesso",
           description: "Bem-vindo ao Advoc.AI!",
         });
-        navigate("/");
+        navigate("/dashboard");
       } else {
         throw new Error("Invalid credentials");
       }
@@ -92,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: "Conta criada com sucesso",
           description: "Bem-vindo ao Advoc.AI!",
         });
-        navigate("/");
+        navigate("/dashboard");
       } else {
         throw new Error("Missing required fields");
       }
@@ -115,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       title: "Logout realizado",
       description: "Você saiu da sua conta.",
     });
-    navigate("/login");
+    navigate("/");
   };
 
   return (
