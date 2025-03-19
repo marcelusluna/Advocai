@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -210,6 +209,82 @@ const LandingPage: React.FC = () => {
         </Container>
       </section>
 
+      {/* Testimonials Section */}
+      <section id="testimonials" className="py-20 bg-white">
+        <Container className="max-w-7xl">
+          <div className="text-center mb-16">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              O Que Dizem Nossos Clientes
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Advogados e escritórios jurídicos estão transformando seus negócios com Advoc.AI
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Testimonial 1 */}
+            <Card className="border-0 shadow-lg">
+              <CardContent className="pt-6">
+                <div className="flex flex-col h-full">
+                  <div className="mb-4 text-primary">
+                    {Array(5).fill(0).map((_, i) => (
+                      <span key={i} className="text-yellow-400 text-lg">★</span>
+                    ))}
+                  </div>
+                  <p className="italic text-gray-600 mb-6">
+                    "O Advoc.AI revolucionou a forma como gerencio meu escritório. A automação de documentos economiza horas do meu dia, e o assistente de IA me ajuda a encontrar jurisprudência rapidamente."
+                  </p>
+                  <div className="mt-auto">
+                    <p className="font-bold">Dra. Maria Silva</p>
+                    <p className="text-sm text-gray-500">Advogada Tributarista</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Testimonial 2 */}
+            <Card className="border-0 shadow-lg">
+              <CardContent className="pt-6">
+                <div className="flex flex-col h-full">
+                  <div className="mb-4 text-primary">
+                    {Array(5).fill(0).map((_, i) => (
+                      <span key={i} className="text-yellow-400 text-lg">★</span>
+                    ))}
+                  </div>
+                  <p className="italic text-gray-600 mb-6">
+                    "Como gestor de um escritório com 15 advogados, o Advoc.AI nos permitiu escalar nossos serviços sem aumentar a equipe administrativa. O ROI foi impressionante já no primeiro mês."
+                  </p>
+                  <div className="mt-auto">
+                    <p className="font-bold">Dr. Carlos Mendes</p>
+                    <p className="text-sm text-gray-500">Sócio-diretor em Escritório Empresarial</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Testimonial 3 */}
+            <Card className="border-0 shadow-lg">
+              <CardContent className="pt-6">
+                <div className="flex flex-col h-full">
+                  <div className="mb-4 text-primary">
+                    {Array(5).fill(0).map((_, i) => (
+                      <span key={i} className="text-yellow-400 text-lg">★</span>
+                    ))}
+                  </div>
+                  <p className="italic text-gray-600 mb-6">
+                    "A validação de contratos com IA detectou cláusulas problemáticas que eu poderia ter perdido. Essa ferramenta já evitou vários problemas potenciais para meus clientes."
+                  </p>
+                  <div className="mt-auto">
+                    <p className="font-bold">Dra. Ana Oliveira</p>
+                    <p className="text-sm text-gray-500">Especialista em Direito Contratual</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </Container>
+      </section>
+
       {/* Pricing Section */}
       <section id="pricing" className="py-20 bg-slate-50">
         <Container className="max-w-7xl">
@@ -321,82 +396,6 @@ const LandingPage: React.FC = () => {
                     >
                       Escolher plano
                     </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </Container>
-      </section>
-
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 bg-white">
-        <Container className="max-w-7xl">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              O Que Dizem Nossos Clientes
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Advogados e escritórios jurídicos estão transformando seus negócios com Advoc.AI
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Testimonial 1 */}
-            <Card className="border-0 shadow-lg">
-              <CardContent className="pt-6">
-                <div className="flex flex-col h-full">
-                  <div className="mb-4 text-primary">
-                    {Array(5).fill(0).map((_, i) => (
-                      <span key={i} className="text-yellow-400 text-lg">★</span>
-                    ))}
-                  </div>
-                  <p className="italic text-gray-600 mb-6">
-                    "O Advoc.AI revolucionou a forma como gerencio meu escritório. A automação de documentos economiza horas do meu dia, e o assistente de IA me ajuda a encontrar jurisprudência rapidamente."
-                  </p>
-                  <div className="mt-auto">
-                    <p className="font-bold">Dra. Maria Silva</p>
-                    <p className="text-sm text-gray-500">Advogada Tributarista</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Testimonial 2 */}
-            <Card className="border-0 shadow-lg">
-              <CardContent className="pt-6">
-                <div className="flex flex-col h-full">
-                  <div className="mb-4 text-primary">
-                    {Array(5).fill(0).map((_, i) => (
-                      <span key={i} className="text-yellow-400 text-lg">★</span>
-                    ))}
-                  </div>
-                  <p className="italic text-gray-600 mb-6">
-                    "Como gestor de um escritório com 15 advogados, o Advoc.AI nos permitiu escalar nossos serviços sem aumentar a equipe administrativa. O ROI foi impressionante já no primeiro mês."
-                  </p>
-                  <div className="mt-auto">
-                    <p className="font-bold">Dr. Carlos Mendes</p>
-                    <p className="text-sm text-gray-500">Sócio-diretor em Escritório Empresarial</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Testimonial 3 */}
-            <Card className="border-0 shadow-lg">
-              <CardContent className="pt-6">
-                <div className="flex flex-col h-full">
-                  <div className="mb-4 text-primary">
-                    {Array(5).fill(0).map((_, i) => (
-                      <span key={i} className="text-yellow-400 text-lg">★</span>
-                    ))}
-                  </div>
-                  <p className="italic text-gray-600 mb-6">
-                    "A validação de contratos com IA detectou cláusulas problemáticas que eu poderia ter perdido. Essa ferramenta já evitou vários problemas potenciais para meus clientes."
-                  </p>
-                  <div className="mt-auto">
-                    <p className="font-bold">Dra. Ana Oliveira</p>
-                    <p className="text-sm text-gray-500">Especialista em Direito Contratual</p>
                   </div>
                 </div>
               </CardContent>
