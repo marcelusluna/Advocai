@@ -75,8 +75,8 @@ const LandingPage: React.FC = () => {
               <div className="absolute -top-6 -left-6 w-24 h-24 bg-blue-500 rounded-full opacity-20"></div>
               <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-indigo-500 rounded-full opacity-20"></div>
               <img 
-                src="/lovable-uploads/c00e8e22-2552-42f7-a22a-8b0f08c510a8.png" 
-                alt="Advoc.AI Dashboard" 
+                src="/lovable-uploads/84fe5ffe-ec43-496f-8504-29155fba7a19.png" 
+                alt="Dashboard Jurídico Advoc.AI" 
                 className="relative rounded-lg shadow-2xl w-full object-cover z-10"
               />
             </div>
