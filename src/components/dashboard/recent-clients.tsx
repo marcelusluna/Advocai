@@ -1,4 +1,3 @@
-
 import React, { useState, useContext } from "react";
 import { Users, Plus, Search, Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -81,8 +80,8 @@ const RecentClients: React.FC = () => {
     setFilteredClients(filtered);
   };
 
-  const addNewClient = (clientData: { name: string; email: string; type: string }) => {
-    if (!clientData.name || !clientData.email) {
+  const addNewClient = () => {
+    if (!newClient.name || !newClient.email) {
       toast({
         title: "Dados incompletos",
         description: "Preencha todos os campos obrigatórios.",
@@ -93,9 +92,9 @@ const RecentClients: React.FC = () => {
 
     const newClientData = {
       id: (clients.length + 1).toString(),
-      name: clientData.name,
-      email: clientData.email,
-      type: clientData.type,
+      name: newClient.name,
+      email: newClient.email,
+      type: newClient.type,
       date: "Agora",
       status: "ativo"
     };
@@ -103,10 +102,11 @@ const RecentClients: React.FC = () => {
     const updatedClients = [newClientData, ...clients];
     setClients(updatedClients);
     setFilteredClients(updatedClients);
+    setNewClient({ name: "", email: "", type: "Pessoa Física" });
     
     toast({
       title: "Cliente adicionado",
-      description: `${clientData.name} foi adicionado com sucesso.`
+      description: `${newClient.name} foi adicionado com sucesso.`
     });
   };
 
