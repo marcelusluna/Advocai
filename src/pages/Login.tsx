@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/contexts/auth"; // Updated import
 import { Mail, Lock } from "lucide-react";
 import Logo from "@/components/ui/logo";
 import { useToast } from "@/hooks/use-toast";

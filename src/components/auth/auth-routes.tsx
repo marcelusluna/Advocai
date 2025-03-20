@@ -14,26 +14,22 @@ import Profile from "@/pages/Profile";
 import Office from "@/pages/Office";
 import NotFound from "@/pages/NotFound";
 import LandingPage from "@/pages/LandingPage";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/contexts/auth";
 
 const AuthRoutes: React.FC = () => {
   const { user } = useAuth();
 
-  // If user is authenticated, redirect to dashboard page from login/signup
   const renderAuthRoute = (Component: React.ComponentType) => {
     return user ? <Navigate to="/dashboard" /> : <Component />;
   };
 
   return (
     <Routes>
-      {/* Landing page route */}
       <Route path="/" element={<LandingPage />} />
       
-      {/* Public routes */}
       <Route path="/login" element={renderAuthRoute(Login)} />
       <Route path="/signup" element={renderAuthRoute(Signup)} />
 
-      {/* Protected routes */}
       <Route 
         path="/dashboard" 
         element={
@@ -107,7 +103,6 @@ const AuthRoutes: React.FC = () => {
         } 
       />
 
-      {/* 404 route */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

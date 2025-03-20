@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { MessageSquareText, X, Send, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/contexts/auth";
 
 interface Message {
   role: "user" | "assistant";
@@ -19,7 +18,6 @@ const AiAssistant: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
-  // Inicializar com mensagem de boas-vindas
   useEffect(() => {
     setMessages([
       {
@@ -30,7 +28,6 @@ const AiAssistant: React.FC = () => {
     ]);
   }, [user?.name]);
 
-  // Rolar para a última mensagem quando novas mensagens forem adicionadas
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -45,7 +42,6 @@ const AiAssistant: React.FC = () => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    // Adiciona mensagem do usuário
     const userMessage: Message = {
       role: "user",
       content: input,
@@ -55,14 +51,12 @@ const AiAssistant: React.FC = () => {
     setMessages(prev => [...prev, userMessage]);
     setInput("");
 
-    // Simula resposta do assistente após um pequeno delay
     setTimeout(() => {
       const assistantResponse = getAIResponse(input, user?.name || "");
       setMessages(prev => [...prev, assistantResponse]);
     }, 1000);
   };
 
-  // Função para gerar respostas baseadas em palavras-chave
   const getAIResponse = (query: string, userName: string): Message => {
     const lowerQuery = query.toLowerCase();
     let response = `Não entendi completamente sua dúvida${userName ? ', ' + userName : ''}. Poderia reformular?`;
@@ -98,7 +92,6 @@ const AiAssistant: React.FC = () => {
 
   return (
     <>
-      {/* Botão flutuante para abrir o assistente */}
       <Button
         onClick={toggleAssistant}
         className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg"
@@ -111,7 +104,6 @@ const AiAssistant: React.FC = () => {
         )}
       </Button>
 
-      {/* Painel do assistente */}
       <div
         className={cn(
           "fixed bottom-24 right-6 w-80 md:w-96 bg-card rounded-lg border border-border shadow-lg transition-all duration-300 ease-in-out z-50",
@@ -128,7 +120,6 @@ const AiAssistant: React.FC = () => {
           </Button>
         </div>
 
-        {/* Área de mensagens */}
         <div className="h-80 overflow-y-auto p-3 flex flex-col gap-3">
           {messages.map((msg, index) => (
             <div
@@ -149,7 +140,6 @@ const AiAssistant: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Área de input */}
         <form onSubmit={handleSubmit} className="p-3 border-t border-border">
           <div className="flex gap-2">
             <Textarea
