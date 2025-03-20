@@ -1,33 +1,13 @@
 
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { DialogFooter } from "@/components/ui/dialog";
+import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import { useToast } from "@/hooks/use-toast";
-import { CreditCard, Lock, Mail } from "lucide-react";
-import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { PaymentSuccessView } from "./payment-success";
 import { getPlanDetails } from "@/utils/stripe-utils";
-
-// Configurações visuais para o CardElement
-const cardElementOptions = {
-  style: {
-    base: {
-      fontSize: '16px',
-      color: '#424770',
-      fontFamily: 'Inter, system-ui, sans-serif',
-      '::placeholder': {
-        color: '#aab7c4',
-      },
-      iconColor: '#3b82f6',
-    },
-    invalid: {
-      color: '#e11d48',
-      iconColor: '#e11d48',
-    },
-  },
-};
+import { PaymentSuccessView } from "./payment-success";
+import { PlanSummary } from "./plan-summary";
+import { CustomerInfoForm } from "./customer-info-form";
+import { CardSection, cardElementOptions } from "./card-section";
+import { FormActions } from "./form-actions";
 
 interface CheckoutFormProps {
   onComplete: () => void;
@@ -133,6 +113,9 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
     }
   };
 
+  // Checking if form is valid
+  const isFormValid = !!cardName && !!email;
+
   if (success) {
     return <PaymentSuccessView onComplete={onComplete} />;
   }
@@ -140,92 +123,30 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6 py-4">
       {/* Resumo do plano */}
-      <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 space-y-3 mb-2">
-        <div className="flex justify-between items-center">
-          <span className="font-medium text-gray-700">Plano:</span>
-          <span className="font-semibold">{planName}</span>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className="font-medium text-gray-700">Valor:</span>
-          <span className="text-xl font-bold text-primary">{planPrice}</span>
-        </div>
-      </div>
+      <PlanSummary planName={planName} planPrice={planPrice} />
       
-      {/* Formulário de pagamento */}
-      <div className="space-y-5">
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-gray-700">Email</Label>
-          <div className="relative">
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              className="pl-10"
-              disabled={isProcessing}
-              required
-            />
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="cardName" className="text-gray-700">Nome no cartão</Label>
-          <div className="relative">
-            <Input
-              id="cardName"
-              value={cardName}
-              onChange={(e) => setCardName(e.target.value)}
-              placeholder="Nome como aparece no cartão"
-              className="pl-10"
-              disabled={isProcessing}
-            />
-            <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          <Label className="text-gray-700">Dados do cartão</Label>
-          <div className={`bg-white border rounded-md p-4 transition-all ${isProcessing ? 'opacity-50' : ''} focus-within:ring-2 focus-within:ring-primary focus-within:ring-opacity-40`}>
-            <CardElement options={cardElementOptions} />
-          </div>
-          
-          <div className="flex items-center text-xs text-gray-500 mt-2">
-            <Lock className="h-3 w-3 mr-1" />
-            <span>Seus dados estão seguros e criptografados</span>
-          </div>
-          
-          {error && (
-            <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm flex items-start mt-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-              <span>{error}</span>
-            </div>
-          )}
-        </div>
-      </div>
+      {/* Formulário de dados do cliente */}
+      <CustomerInfoForm 
+        email={email}
+        setEmail={setEmail}
+        cardName={cardName}
+        setCardName={setCardName}
+        isProcessing={isProcessing}
+      />
       
-      <DialogFooter className="pt-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => {
-            onProcessing(false);
-          }}
-          disabled={isProcessing}
-        >
-          Cancelar
-        </Button>
-        <Button 
-          type="submit" 
-          disabled={!stripe || isProcessing || !cardName || !email}
-          className={`${isProcessing ? "bg-stripe-gradient bg-stripe-loading" : ""}`}
-        >
-          {isProcessing ? "Processando..." : "Finalizar pagamento"}
-        </Button>
-      </DialogFooter>
+      {/* Seção do cartão de crédito */}
+      <CardSection 
+        isProcessing={isProcessing} 
+        error={error} 
+      />
+      
+      {/* Ações do formulário */}
+      <FormActions 
+        onCancel={() => onProcessing(false)}
+        isProcessing={isProcessing}
+        isFormValid={isFormValid}
+        hasStripe={!!stripe}
+      />
     </form>
   );
 };
