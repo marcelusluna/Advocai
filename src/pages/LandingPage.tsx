@@ -23,6 +23,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import CheckoutDialog from "@/components/checkout/checkout-dialog";
+import Badge from "@/components/ui/badge";
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -634,8 +635,10 @@ const LandingPage: React.FC = () => {
               "border-2 border-primary shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden",
             )}>
               <div className="h-2 bg-gradient-to-r from-indigo-400 to-indigo-600"></div>
-              <div className="absolute top-0 right-6 transform -translate-y-1/2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-1.5 rounded-full text-sm font-medium">
-                Popular
+              <div className="absolute -top-0.5 right-4 transform -translate-y-1/2 px-4 py-1 rounded-full text-sm font-bold z-10">
+                <Badge variant="popular" className="px-4 py-1.5 text-sm animate-pulse">
+                  Popular
+                </Badge>
               </div>
               <CardContent className="pt-8">
                 <div className="flex flex-col h-full">
