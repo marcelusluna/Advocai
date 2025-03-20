@@ -9,7 +9,297 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      assinaturas: {
+        Row: {
+          created_at: string
+          data_fim: string | null
+          data_inicio: string
+          id: string
+          plano: string
+          preco: number
+          renovacao_automatica: boolean | null
+          status: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_fim?: string | null
+          data_inicio: string
+          id?: string
+          plano: string
+          preco: number
+          renovacao_automatica?: boolean | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          id?: string
+          plano?: string
+          preco?: number
+          renovacao_automatica?: boolean | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      clientes: {
+        Row: {
+          advogado_id: string
+          cep: string | null
+          cidade: string | null
+          cpf_cnpj: string | null
+          created_at: string
+          email: string | null
+          endereco: string | null
+          estado: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          telefone: string | null
+          tipo: string | null
+          updated_at: string
+        }
+        Insert: {
+          advogado_id: string
+          cep?: string | null
+          cidade?: string | null
+          cpf_cnpj?: string | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          telefone?: string | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          advogado_id?: string
+          cep?: string | null
+          cidade?: string | null
+          cpf_cnpj?: string | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          telefone?: string | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clientes_advogado_id_fkey"
+            columns: ["advogado_id"]
+            isOneToOne: false
+            referencedRelation: "perfil_advogado"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      honorarios: {
+        Row: {
+          advogado_id: string
+          cliente_id: string | null
+          created_at: string
+          data_emissao: string
+          data_pagamento: string | null
+          data_vencimento: string | null
+          descricao: string
+          forma_pagamento: string | null
+          id: string
+          numero_fatura: string | null
+          processo_id: string | null
+          status: string | null
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          advogado_id: string
+          cliente_id?: string | null
+          created_at?: string
+          data_emissao: string
+          data_pagamento?: string | null
+          data_vencimento?: string | null
+          descricao: string
+          forma_pagamento?: string | null
+          id?: string
+          numero_fatura?: string | null
+          processo_id?: string | null
+          status?: string | null
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          advogado_id?: string
+          cliente_id?: string | null
+          created_at?: string
+          data_emissao?: string
+          data_pagamento?: string | null
+          data_vencimento?: string | null
+          descricao?: string
+          forma_pagamento?: string | null
+          id?: string
+          numero_fatura?: string | null
+          processo_id?: string | null
+          status?: string | null
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "honorarios_advogado_id_fkey"
+            columns: ["advogado_id"]
+            isOneToOne: false
+            referencedRelation: "perfil_advogado"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "honorarios_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "honorarios_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perfil_advogado: {
+        Row: {
+          bio: string | null
+          created_at: string
+          email: string | null
+          especialidade: string | null
+          foto_url: string | null
+          id: string
+          nome: string
+          oab: string | null
+          telefone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          especialidade?: string | null
+          foto_url?: string | null
+          id?: string
+          nome: string
+          oab?: string | null
+          telefone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          especialidade?: string | null
+          foto_url?: string | null
+          id?: string
+          nome?: string
+          oab?: string | null
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      processos: {
+        Row: {
+          advogado_id: string
+          area: string | null
+          cliente_id: string | null
+          comarca: string | null
+          created_at: string
+          data_fim: string | null
+          data_inicio: string | null
+          descricao: string | null
+          fase: string | null
+          id: string
+          numero: string | null
+          status: string | null
+          tipo: string | null
+          updated_at: string
+          valor_causa: number | null
+          vara: string | null
+        }
+        Insert: {
+          advogado_id: string
+          area?: string | null
+          cliente_id?: string | null
+          comarca?: string | null
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          fase?: string | null
+          id?: string
+          numero?: string | null
+          status?: string | null
+          tipo?: string | null
+          updated_at?: string
+          valor_causa?: number | null
+          vara?: string | null
+        }
+        Update: {
+          advogado_id?: string
+          area?: string | null
+          cliente_id?: string | null
+          comarca?: string | null
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          fase?: string | null
+          id?: string
+          numero?: string | null
+          status?: string | null
+          tipo?: string | null
+          updated_at?: string
+          valor_causa?: number | null
+          vara?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "processos_advogado_id_fkey"
+            columns: ["advogado_id"]
+            isOneToOne: false
+            referencedRelation: "perfil_advogado"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "processos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
