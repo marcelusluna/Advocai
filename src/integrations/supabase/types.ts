@@ -20,6 +20,7 @@ export type Database = {
           renovacao_automatica: boolean | null
           status: string | null
           stripe_customer_id: string | null
+          stripe_payment_method_id: string | null
           stripe_subscription_id: string | null
           updated_at: string
           user_id: string
@@ -34,6 +35,7 @@ export type Database = {
           renovacao_automatica?: boolean | null
           status?: string | null
           stripe_customer_id?: string | null
+          stripe_payment_method_id?: string | null
           stripe_subscription_id?: string | null
           updated_at?: string
           user_id: string
@@ -48,6 +50,7 @@ export type Database = {
           renovacao_automatica?: boolean | null
           status?: string | null
           stripe_customer_id?: string | null
+          stripe_payment_method_id?: string | null
           stripe_subscription_id?: string | null
           updated_at?: string
           user_id?: string

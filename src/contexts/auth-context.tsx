@@ -10,6 +10,7 @@ type User = {
   email: string;
   plan?: string;
   trialEndsAt?: string;
+  paymentMethodId?: string;
 };
 
 type AuthContextType = {
@@ -18,6 +19,7 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string, plan?: string, paymentMethod?: string) => Promise<void>;
   logout: () => void;
+  refreshUserData: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,52 +30,129 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Função para buscar dados do usuário do Supabase
+  const fetchUserData = async (userId: string): Promise<User | null> => {
+    try {
+      // Buscar informações de assinatura do usuário
+      const { data: userData, error: userError } = await supabase
+        .from('assinaturas')
+        .select('plano, data_fim, stripe_payment_method_id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (userError) {
+        console.error("Erro ao buscar dados do usuário:", userError);
+        return null;
+      }
+      
+      // Obter dados do usuário a partir da sessão
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      
+      if (!authUser) return null;
+      
+      // Criar objeto de usuário com dados combinados
+      return {
+        id: userId,
+        name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || "Usuário",
+        email: authUser.email || "",
+        plan: userData?.plano || "Teste",
+        trialEndsAt: userData?.data_fim,
+        paymentMethodId: userData?.stripe_payment_method_id
+      };
+    } catch (error) {
+      console.error("Erro ao buscar dados de usuário:", error);
+      return null;
+    }
+  };
+
+  // Função para atualizar os dados do usuário
+  const refreshUserData = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const userData = await fetchUserData(user.id);
+      if (userData) {
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar dados do usuário:", error);
+    }
+  };
+
   useEffect(() => {
-    // Check for Supabase session on mount
+    // Verificar sessão do Supabase ao montar o componente
     const getInitialSession = async () => {
       try {
         setIsLoading(true);
         const { data } = await supabase.auth.getSession();
         
         if (data.session) {
-          // Get user data from localStorage or create minimal object
+          // Obter dados do usuário do localStorage ou criar objeto mínimo
           const storedUser = localStorage.getItem("user");
+          
           if (storedUser) {
-            setUser(JSON.parse(storedUser));
+            // Usar dados armazenados temporariamente
+            const parsedUser = JSON.parse(storedUser);
+            setUser(parsedUser);
+            
+            // Atualizar dados em segundo plano
+            const freshUserData = await fetchUserData(data.session.user.id);
+            if (freshUserData) {
+              setUser(freshUserData);
+              localStorage.setItem("user", JSON.stringify(freshUserData));
+            }
           } else if (data.session.user) {
-            // Create minimal user object if we have auth but no stored user data
-            const { email, id } = data.session.user;
-            const minimalUser = {
-              id,
-              name: email?.split("@")[0] || "User",
-              email: email || "",
-            };
-            localStorage.setItem("user", JSON.stringify(minimalUser));
-            setUser(minimalUser);
+            // Buscar dados completos do usuário
+            const userData = await fetchUserData(data.session.user.id);
+            
+            if (userData) {
+              setUser(userData);
+              localStorage.setItem("user", JSON.stringify(userData));
+            } else {
+              // Criar objeto mínimo se não encontrar dados
+              const { email, id } = data.session.user;
+              const minimalUser = {
+                id,
+                name: email?.split("@")[0] || "Usuário",
+                email: email || "",
+              };
+              localStorage.setItem("user", JSON.stringify(minimalUser));
+              setUser(minimalUser);
+            }
           }
         }
       } catch (error) {
-        console.error("Error getting session:", error);
+        console.error("Erro ao obter sessão:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    // Set up auth state change listener
+    // Configura listener para mudanças no estado de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("Auth state change:", event);
+        
         if (event === "SIGNED_IN" && session) {
-          // When user signs in, update the user state
-          const { user } = session;
-          const updatedUser = {
-            id: user.id,
-            name: user.email?.split("@")[0] || "User",
-            email: user.email || "",
-          };
-          localStorage.setItem("user", JSON.stringify(updatedUser));
-          setUser(updatedUser);
+          // Quando o usuário faz login, atualiza o estado do usuário
+          const userData = await fetchUserData(session.user.id);
+          
+          if (userData) {
+            localStorage.setItem("user", JSON.stringify(userData));
+            setUser(userData);
+          } else {
+            // Fallback se os dados não forem encontrados
+            const updatedUser = {
+              id: session.user.id,
+              name: session.user.email?.split("@")[0] || "Usuário",
+              email: session.user.email || "",
+            };
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+            setUser(updatedUser);
+          }
         } else if (event === "SIGNED_OUT") {
-          // When user signs out, clear the user state
+          // Quando o usuário sai, limpa o estado do usuário
           localStorage.removeItem("user");
           setUser(null);
         }
@@ -82,7 +161,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     getInitialSession();
 
-    // Cleanup subscription on unmount
+    // Limpeza da inscrição ao desmontar
     return () => {
       subscription.unsubscribe();
     };
@@ -99,24 +178,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       
       if (data.user) {
-        // Fetch user plan information if available
-        const { data: planData, error: planError } = await supabase
-          .from('assinaturas')
-          .select('plano, data_fim')
-          .eq('user_id', data.user.id)
-          .maybeSingle();
+        // Buscar dados completos do usuário
+        const userData = await fetchUserData(data.user.id);
         
-        // Create user object with plan information if available
-        const loggedInUser = {
-          id: data.user.id,
-          name: data.user.email?.split("@")[0] || "User",
-          email: data.user.email || "",
-          plan: planData?.plano || "Teste",
-          trialEndsAt: planData?.data_fim,
-        };
-        
-        localStorage.setItem("user", JSON.stringify(loggedInUser));
-        setUser(loggedInUser);
+        if (userData) {
+          localStorage.setItem("user", JSON.stringify(userData));
+          setUser(userData);
+        } else {
+          // Fallback para objeto de usuário mínimo
+          const loggedInUser = {
+            id: data.user.id,
+            name: data.user.email?.split("@")[0] || "Usuário",
+            email: data.user.email || "",
+          };
+          
+          localStorage.setItem("user", JSON.stringify(loggedInUser));
+          setUser(loggedInUser);
+        }
         
         toast({
           title: "Login realizado com sucesso",
@@ -141,7 +219,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signup = async (name: string, email: string, password: string, plan?: string, paymentMethod?: string) => {
     setIsLoading(true);
     try {
-      // Register the user with Supabase Auth
+      // Registrar o usuário com Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -155,12 +233,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (authError) throw authError;
       
       if (authData.user) {
-        // Calculate trial end date (14 days from now)
+        // Calcular data de término do teste (14 dias a partir de agora)
         const trialEndsAt = new Date();
         trialEndsAt.setDate(trialEndsAt.getDate() + 14);
-        const trialEndDate = trialEndsAt.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+        const trialEndDate = trialEndsAt.toISOString().split('T')[0]; // Formato YYYY-MM-DD
         
-        // Create subscription record in assinaturas table
+        // Criar registro de assinatura na tabela assinaturas
         if (plan) {
           const { data: planData } = await supabase
             .from('planos')
@@ -170,7 +248,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           const preco = planData?.preco || 0;
           
-          // Insert subscription record
+          // Inserir registro de assinatura
           const { error: subscriptionError } = await supabase
             .from('assinaturas')
             .insert({
@@ -184,17 +262,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
           
           if (subscriptionError) {
-            console.error("Error creating subscription:", subscriptionError);
+            console.error("Erro ao criar assinatura:", subscriptionError);
           }
         }
         
-        // Create user profile record
+        // Criar objeto de usuário com todos os dados
         const newUser = {
           id: authData.user.id,
           name,
           email,
           plan: plan || "Teste",
           trialEndsAt: trialEndDate,
+          paymentMethodId: paymentMethod
         };
         
         localStorage.setItem("user", JSON.stringify(newUser));
@@ -235,7 +314,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, signup, logout, refreshUserData }}>
       {children}
     </AuthContext.Provider>
   );

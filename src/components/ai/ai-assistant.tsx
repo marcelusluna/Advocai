@@ -1,9 +1,10 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { MessageSquareText, X, Send, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/auth-context";
 
 interface Message {
   role: "user" | "assistant";
@@ -14,13 +15,27 @@ interface Message {
 const AiAssistant: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "Olá! Sou o assistente virtual do AdvocCase. Como posso ajudar você hoje?",
-      timestamp: new Date()
+  const [messages, setMessages] = useState<Message[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+
+  // Inicializar com mensagem de boas-vindas
+  useEffect(() => {
+    setMessages([
+      {
+        role: "assistant",
+        content: `Olá${user?.name ? ', ' + user.name : ''}! Sou o assistente virtual do AdvocCase. Como posso ajudar você hoje?`,
+        timestamp: new Date()
+      }
+    ]);
+  }, [user?.name]);
+
+  // Rolar para a última mensagem quando novas mensagens forem adicionadas
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  ]);
+  }, [messages]);
 
   const toggleAssistant = () => {
     setIsOpen(!isOpen);
@@ -42,34 +57,36 @@ const AiAssistant: React.FC = () => {
 
     // Simula resposta do assistente após um pequeno delay
     setTimeout(() => {
-      const assistantResponse = getAIResponse(input);
+      const assistantResponse = getAIResponse(input, user?.name || "");
       setMessages(prev => [...prev, assistantResponse]);
     }, 1000);
   };
 
   // Função para gerar respostas baseadas em palavras-chave
-  const getAIResponse = (query: string): Message => {
+  const getAIResponse = (query: string, userName: string): Message => {
     const lowerQuery = query.toLowerCase();
-    let response = "Não entendi completamente sua dúvida. Poderia reformular?";
+    let response = `Não entendi completamente sua dúvida${userName ? ', ' + userName : ''}. Poderia reformular?`;
 
     if (lowerQuery.includes("processo") || lowerQuery.includes("caso")) {
-      response = "Para gerenciar processos, acesse a seção 'Processos' no menu lateral. Lá você pode adicionar novos casos, acompanhar andamentos e definir prazos importantes.";
+      response = `Para gerenciar seus processos${userName ? ', ' + userName : ''}, acesse a seção 'Processos' no menu lateral. Lá você pode adicionar novos casos, acompanhar andamentos e definir prazos importantes.`;
     } else if (lowerQuery.includes("cliente") || lowerQuery.includes("cadastro")) {
-      response = "Na seção 'Clientes', você pode cadastrar e gerenciar todas as informações de seus clientes, incluindo histórico de contratações e documentos.";
+      response = `Na seção 'Clientes', você pode cadastrar e gerenciar todas as informações de seus clientes, incluindo histórico de contratações e documentos.`;
     } else if (lowerQuery.includes("documento") || lowerQuery.includes("contrato")) {
-      response = "Para gerenciar documentos e contratos, utilize as seções específicas no menu lateral. Você pode criar, editar e assinar documentos diretamente na plataforma. Temos também um gerador de documentos baseado em IA na seção 'Documentos'.";
+      response = `Para gerenciar documentos e contratos, utilize as seções específicas no menu lateral. Você pode criar, editar e assinar documentos diretamente na plataforma. Temos também um gerador de documentos baseado em IA na seção 'Documentos'.`;
     } else if (lowerQuery.includes("honorário") || lowerQuery.includes("pagamento") || lowerQuery.includes("cobrança")) {
-      response = "A gestão de honorários é feita na seção 'Honorários'. Você pode configurar valores, gerar cobranças e acompanhar pagamentos de seus clientes.";
+      response = `A gestão de honorários é feita na seção 'Honorários'. Você pode configurar valores, gerar cobranças e acompanhar pagamentos de seus clientes.`;
     } else if (lowerQuery.includes("prazo") || lowerQuery.includes("data")) {
-      response = "Para não perder prazos importantes, utilize o calendário na seção 'Dashboard' ou a gestão de tarefas em cada processo específico.";
+      response = `Para não perder prazos importantes, utilize o calendário na seção 'Dashboard' ou a gestão de tarefas em cada processo específico.`;
     } else if (lowerQuery.includes("petição") || lowerQuery.includes("gerar documento")) {
-      response = "Para criar uma nova petição ou qualquer documento jurídico, acesse a seção 'Documentos' e clique em 'Gerador de Documentos'. Lá você pode utilizar nossos modelos pré-definidos ou a IA para criar documentos personalizados.";
+      response = `Para criar uma nova petição ou qualquer documento jurídico, acesse a seção 'Documentos' e clique em 'Gerador de Documentos'. Lá você pode utilizar nossos modelos pré-definidos ou a IA para criar documentos personalizados.`;
     } else if (lowerQuery.includes("modelo") || lowerQuery.includes("template")) {
-      response = "Temos vários modelos de documentos disponíveis no sistema. Acesse a seção 'Documentos' para ver todos os templates disponíveis e usá-los para criar novos documentos.";
+      response = `Temos vários modelos de documentos disponíveis no sistema. Acesse a seção 'Documentos' para ver todos os templates disponíveis e usá-los para criar novos documentos.`;
     } else if (lowerQuery.includes("gerar") || lowerQuery.includes("criar com ia")) {
-      response = "Para gerar conteúdo com IA, acesse o 'Gerador de Documentos' na seção 'Documentos'. Lá você pode fornecer instruções para a IA criar petições, contratos e outros documentos jurídicos personalizados.";
+      response = `Para gerar conteúdo com IA, acesse o 'Gerador de Documentos' na seção 'Documentos'. Lá você pode fornecer instruções para a IA criar petições, contratos e outros documentos jurídicos personalizados.`;
     } else if (lowerQuery.includes("ajuda") || lowerQuery.includes("tutorial")) {
-      response = "Estou aqui para ajudar! Posso tirar dúvidas sobre qualquer funcionalidade do AdvocCase. Basta me perguntar sobre clientes, processos, documentos, contratos ou honorários.";
+      response = `Estou aqui para ajudar${userName ? ', ' + userName : ''}! Posso tirar dúvidas sobre qualquer funcionalidade do AdvocCase. Basta me perguntar sobre clientes, processos, documentos, contratos ou honorários.`;
+    } else if (lowerQuery.includes("meu plano") || lowerQuery.includes("assinatura")) {
+      response = `Você pode verificar os detalhes da sua assinatura na seção 'Perfil'. Lá você encontrará informações sobre seu plano atual, data de renovação e opções de pagamento.`;
     }
 
     return {
@@ -129,6 +146,7 @@ const AiAssistant: React.FC = () => {
               </p>
             </div>
           ))}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Área de input */}
