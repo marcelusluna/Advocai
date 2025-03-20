@@ -76,7 +76,8 @@ const Signup: React.FC = () => {
   const onSubmit = async (values: SignupFormValues) => {
     setError(null);
     try {
-      await signup(values.name, values.email, values.password);
+      // Pass the plan information to the signup function
+      await signup(values.name, values.email, values.password, planName);
     } catch (err) {
       setError("Falha no cadastro. Tente novamente.");
     }

@@ -10,11 +10,11 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-blue-600 text-white hover:bg-blue-700", // Alterado para azul mais vibrante
+        default: "bg-blue-600 text-white hover:bg-blue-700", // Padrão azul para "Experimente grátis"
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-input bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900", // Mantido (estilo para "Conheça os recursos")
+          "border border-input bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900", // Padrão branco para "Conheça os recursos"
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
