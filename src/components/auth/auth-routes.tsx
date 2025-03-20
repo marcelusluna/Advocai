@@ -1,14 +1,13 @@
-
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./protected-route";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
-import Index from "@/pages/Index";
-import Clients from "@/pages/Clients";
+import Dashboard from "@/pages/Index";
+import Clients from "@/pages/clients/Clients";
 import Cases from "@/pages/Cases";
 import Documents from "@/pages/Documents";
-import Contracts from "@/pages/Contracts";
+import Contracts from "@/pages/contracts/Contracts";
 import PetitionGenerator from "@/pages/PetitionGenerator";
 import Billing from "@/pages/Billing";
 import Profile from "@/pages/Profile";
@@ -39,7 +38,7 @@ const AuthRoutes: React.FC = () => {
         path="/dashboard" 
         element={
           <ProtectedRoute>
-            <Index />
+            <Dashboard />
           </ProtectedRoute>
         } 
       />
