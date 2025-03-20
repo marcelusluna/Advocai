@@ -1,6 +1,14 @@
 
 import { loadStripe } from '@stripe/stripe-js';
 
+// Define a plan interface to include optional priceId
+interface Plan {
+  id: string;
+  price: number;
+  trialPeriodDays: number;
+  priceId?: string; // Make priceId optional
+}
+
 // Initialize Stripe with the publishable key
 export const stripePromise = loadStripe("pk_live_51R4id2RtWossoVT0xB9yFMhDr2HTyclYcyKIO4HsRHEe2LxwbN9wAq1TJ4YCv2VFyJAjrKDq9x0KCHgT0XTG24WA00c8ieDbkf");
 
@@ -13,7 +21,7 @@ export const formatPrice = (price: number): string => {
 };
 
 // Plans configuration
-export const plans = {
+export const plans: Record<string, Plan> = {
   básico: {
     id: 'basic',
     price: 97,
@@ -39,7 +47,7 @@ export const plans = {
 };
 
 // Get plan details by name
-export const getPlanDetails = (planName: string) => {
+export const getPlanDetails = (planName: string): Plan => {
   const normalizedName = planName.toLowerCase();
   
   switch (normalizedName) {
