@@ -23,7 +23,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import CheckoutDialog from "@/components/checkout/checkout-dialog";
-import Badge from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
