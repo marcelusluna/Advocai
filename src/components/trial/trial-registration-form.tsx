@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -17,6 +17,7 @@ import { Mail, Lock, User } from "lucide-react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useToast } from "@/hooks/use-toast";
 import { Plan } from "@/utils/stripe-utils";
+import { isAdminEmail } from "@/contexts/auth/auth-utils";
 
 const trialSchema = z.object({
   name: z.string().min(2, { message: "Nome deve ter pelo menos 2 caracteres" }),
@@ -65,6 +66,7 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
   const { signup } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [cardError, setCardError] = useState<string | null>(null);
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
@@ -79,22 +81,46 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
     },
   });
 
-  const onSubmit = async (values: TrialFormValues) => {
-    if (!stripe || !elements) {
-      return;
-    }
+  // Check if the current email is the admin email
+  const watchedEmail = form.watch("email");
+  useEffect(() => {
+    setIsAdminUser(isAdminEmail(watchedEmail));
+  }, [watchedEmail]);
 
+  const onSubmit = async (values: TrialFormValues) => {
     setIsProcessing(true);
     setCardError(null);
 
     try {
-      // Validar o cartão
+      // If this is the admin email, bypass the card verification
+      if (isAdminUser) {
+        await signup(
+          values.name, 
+          values.email, 
+          values.password
+        );
+        
+        toast({
+          title: "Registro de administrador concluído",
+          description: "Sua conta de administrador foi criada com sucesso.",
+        });
+        
+        onComplete();
+        return;
+      }
+
+      // For regular users, validate the card
+      if (!stripe || !elements) {
+        throw new Error("Stripe não inicializado");
+      }
+
+      // Validate the card
       const cardElement = elements.getElement(CardElement);
       if (!cardElement) {
         throw new Error("Não foi possível processar o cartão");
       }
 
-      // Criar método de pagamento (que será usado para cobranças futuras)
+      // Create payment method (to be used for future charges)
       const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({
         type: 'card',
         card: cardElement,
@@ -111,7 +137,7 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
       console.log('Payment method created:', paymentMethod.id);
       console.log(`Trial period: ${planDetails?.trialPeriodDays || 14} days for plan ${planName}`);
       
-      // Registrar o usuário com os dados do plano e método de pagamento
+      // Register the user with plan and payment method data
       await signup(
         values.name, 
         values.email, 
@@ -128,7 +154,7 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
       onComplete();
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Erro ao processar o pagamento";
+      const errorMessage = error instanceof Error ? error.message : "Erro ao processar o registro";
       setCardError(errorMessage);
       toast({
         title: "Erro no cadastro",
@@ -237,49 +263,58 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
           />
         </div>
 
-        {/* Informações de pagamento */}
-        <div className="mt-6 space-y-2">
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 space-y-3 mb-2">
-            <div className="flex justify-between items-center">
-              <span className="font-medium text-gray-700">Plano:</span>
-              <span className="font-semibold">{planName}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-medium text-gray-700">Período de teste:</span>
-              <span className="font-semibold">{planDetails?.trialPeriodDays || 14} dias grátis</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-medium text-gray-700">Valor após o período de teste:</span>
-              <span className="font-semibold text-primary">
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL',
-                }).format(planDetails?.price || 0)}/mês
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <FormLabel>Dados do cartão (será cobrado após o período de teste)</FormLabel>
-            <div className={`bg-white border rounded-md p-4 transition-all ${isProcessing ? 'opacity-50' : ''} focus-within:ring-2 focus-within:ring-primary focus-within:ring-opacity-40`}>
-              <CardElement options={cardElementOptions} />
-            </div>
-            
-            <div className="flex items-center text-xs text-gray-500 mt-2">
-              <Lock className="h-3 w-3 mr-1" />
-              <span>Seus dados estão seguros e criptografados</span>
-            </div>
-            
-            {cardError && (
-              <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm flex items-start mt-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-                <span>{cardError}</span>
+        {/* Informações de pagamento - Only show for non-admin users */}
+        {!isAdminUser ? (
+          <div className="mt-6 space-y-2">
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 space-y-3 mb-2">
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-gray-700">Plano:</span>
+                <span className="font-semibold">{planName}</span>
               </div>
-            )}
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-gray-700">Período de teste:</span>
+                <span className="font-semibold">{planDetails?.trialPeriodDays || 14} dias grátis</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-gray-700">Valor após o período de teste:</span>
+                <span className="font-semibold text-primary">
+                  {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  }).format(planDetails?.price || 0)}/mês
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <FormLabel>Dados do cartão (será cobrado após o período de teste)</FormLabel>
+              <div className={`bg-white border rounded-md p-4 transition-all ${isProcessing ? 'opacity-50' : ''} focus-within:ring-2 focus-within:ring-primary focus-within:ring-opacity-40`}>
+                <CardElement options={cardElementOptions} />
+              </div>
+              
+              <div className="flex items-center text-xs text-gray-500 mt-2">
+                <Lock className="h-3 w-3 mr-1" />
+                <span>Seus dados estão seguros e criptografados</span>
+              </div>
+              
+              {cardError && (
+                <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm flex items-start mt-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  <span>{cardError}</span>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+            <div className="text-blue-700 font-medium mb-1">Conta de Administrador</div>
+            <p className="text-sm text-blue-600">
+              Você está criando uma conta de administrador que terá acesso completo à plataforma sem necessidade de informações de pagamento.
+            </p>
+          </div>
+        )}
 
         <div className="flex gap-3 pt-2">
           <Button type="button" variant="outline" onClick={onCancel} disabled={isProcessing}>
@@ -288,9 +323,9 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
           <Button 
             type="submit" 
             className="flex-1"
-            disabled={isProcessing || !stripe}
+            disabled={isProcessing || (!isAdminUser && !stripe)}
           >
-            {isProcessing ? "Processando..." : "Iniciar período de teste"}
+            {isProcessing ? "Processando..." : (isAdminUser ? "Criar conta de administrador" : "Iniciar período de teste")}
           </Button>
         </div>
       </form>

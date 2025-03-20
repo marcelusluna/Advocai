@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "./types";
-import { fetchUserData } from "./auth-utils";
+import { fetchUserData, isAdminEmail } from "./auth-utils";
 
 export const useAuthHook = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -126,28 +126,50 @@ export const useAuthHook = () => {
       if (error) throw error;
       
       if (data.user) {
-        // Fetch complete user data
-        const userData = await fetchUserData(data.user.id);
+        // Check if this is the admin email
+        const isAdmin = isAdminEmail(email);
         
-        if (userData) {
-          localStorage.setItem("user", JSON.stringify(userData));
-          setUser(userData);
-        } else {
-          // Fallback to minimal user object
-          const loggedInUser = {
+        if (isAdmin) {
+          // For admin user, create special admin profile
+          const adminUser = {
             id: data.user.id,
-            name: data.user.email?.split("@")[0] || "Usuário",
+            name: data.user.email?.split("@")[0] || "Admin",
             email: data.user.email || "",
+            plan: "Administrador",
+            isAdmin: true
           };
           
-          localStorage.setItem("user", JSON.stringify(loggedInUser));
-          setUser(loggedInUser);
+          localStorage.setItem("user", JSON.stringify(adminUser));
+          setUser(adminUser);
+          
+          toast({
+            title: "Login de administrador",
+            description: "Bem-vindo ao painel de administração!",
+          });
+        } else {
+          // For regular users, fetch complete user data
+          const userData = await fetchUserData(data.user.id);
+          
+          if (userData) {
+            localStorage.setItem("user", JSON.stringify(userData));
+            setUser(userData);
+          } else {
+            // Fallback to minimal user object
+            const loggedInUser = {
+              id: data.user.id,
+              name: data.user.email?.split("@")[0] || "Usuário",
+              email: data.user.email || "",
+            };
+            
+            localStorage.setItem("user", JSON.stringify(loggedInUser));
+            setUser(loggedInUser);
+          }
+          
+          toast({
+            title: "Login realizado com sucesso",
+            description: "Bem-vindo ao Advoc.AI!",
+          });
         }
-        
-        toast({
-          title: "Login realizado com sucesso",
-          description: "Bem-vindo ao Advoc.AI!",
-        });
         
         navigate("/dashboard");
       }
@@ -168,72 +190,114 @@ export const useAuthHook = () => {
   const signup = async (name: string, email: string, password: string, plan?: string, paymentMethod?: string) => {
     setIsLoading(true);
     try {
-      // Register user with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-          },
-        },
-      });
-      
-      if (authError) throw authError;
-      
-      if (authData.user) {
-        // Calculate trial end date (14 days from now)
-        const trialEndsAt = new Date();
-        trialEndsAt.setDate(trialEndsAt.getDate() + 14);
-        const trialEndDate = trialEndsAt.toISOString().split('T')[0]; // Format YYYY-MM-DD
+      // Check if this is the admin email
+      if (isAdminEmail(email)) {
+        // For admin email, no payment method is required
         
-        // Create subscription record in assinaturas table
-        if (plan) {
-          const { data: planData } = await supabase
-            .from('planos')
-            .select('preco')
-            .eq('nome', plan)
-            .maybeSingle();
-          
-          const preco = planData?.preco || 0;
-          
-          // Insert subscription record
-          const { error: subscriptionError } = await supabase
-            .from('assinaturas')
-            .insert({
-              user_id: authData.user.id,
-              plano: plan,
-              data_inicio: new Date().toISOString().split('T')[0],
-              data_fim: trialEndDate,
-              preco: preco,
-              status: 'trial',
-              stripe_payment_method_id: paymentMethod || null,
-            });
-          
-          if (subscriptionError) {
-            console.error("Erro ao criar assinatura:", subscriptionError);
-          }
-        }
-        
-        // Create user object with all data
-        const newUser = {
-          id: authData.user.id,
-          name,
+        // Register admin user with Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
-          plan: plan || "Teste",
-          trialEndsAt: trialEndDate,
-          paymentMethodId: paymentMethod
-        };
-        
-        localStorage.setItem("user", JSON.stringify(newUser));
-        setUser(newUser);
-        
-        toast({
-          title: "Conta criada com sucesso",
-          description: "Bem-vindo ao Advoc.AI! Seu período de teste gratuito de 14 dias começou.",
+          password,
+          options: {
+            data: {
+              name,
+              isAdmin: true
+            },
+          },
         });
         
-        navigate("/dashboard");
+        if (authError) throw authError;
+        
+        if (authData.user) {
+          // Create admin user object
+          const adminUser = {
+            id: authData.user.id,
+            name,
+            email,
+            plan: "Administrador",
+            isAdmin: true
+          };
+          
+          localStorage.setItem("user", JSON.stringify(adminUser));
+          setUser(adminUser);
+          
+          toast({
+            title: "Conta de administrador criada",
+            description: "Bem-vindo ao painel de administração do Advoc.AI!",
+          });
+          
+          navigate("/dashboard");
+        }
+      } else {
+        // Standard registration process for regular users
+        // Register user with Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              name,
+            },
+          },
+        });
+        
+        if (authError) throw authError;
+        
+        if (authData.user) {
+          // Calculate trial end date (14 days from now)
+          const trialEndsAt = new Date();
+          trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+          const trialEndDate = trialEndsAt.toISOString().split('T')[0]; // Format YYYY-MM-DD
+          
+          // Create subscription record in assinaturas table
+          if (plan) {
+            const { data: planData } = await supabase
+              .from('planos')
+              .select('preco')
+              .eq('nome', plan)
+              .maybeSingle();
+            
+            const preco = planData?.preco || 0;
+            
+            // Insert subscription record
+            const { error: subscriptionError } = await supabase
+              .from('assinaturas')
+              .insert({
+                user_id: authData.user.id,
+                plano: plan,
+                data_inicio: new Date().toISOString().split('T')[0],
+                data_fim: trialEndDate,
+                preco: preco,
+                status: 'trial',
+                stripe_payment_method_id: paymentMethod || null,
+              });
+            
+            if (subscriptionError) {
+              console.error("Erro ao criar assinatura:", subscriptionError);
+            }
+          }
+          
+          // Create user object with all data
+          const newUser = {
+            id: authData.user.id,
+            name,
+            email,
+            plan: plan || "Teste",
+            trialEndsAt: trialEndDate,
+            paymentMethodId: paymentMethod,
+            isAdmin: false
+          };
+          
+          localStorage.setItem("user", JSON.stringify(newUser));
+          setUser(newUser);
+          
+          toast({
+            title: "Conta criada com sucesso",
+            description: "Bem-vindo ao Advoc.AI! Seu período de teste gratuito de 14 dias começou.",
+          });
+          
+          navigate("/dashboard");
+        }
       }
     } catch (error: any) {
       toast({

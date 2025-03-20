@@ -7,6 +7,7 @@ export type User = {
   plan?: string;
   trialEndsAt?: string;
   paymentMethodId?: string;
+  isAdmin?: boolean;
 };
 
 export type AuthContextType = {

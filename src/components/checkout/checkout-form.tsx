@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import { useToast } from "@/hooks/use-toast";
 import { PaymentSuccessView } from "./payment-success";
@@ -9,6 +9,7 @@ import { CardSection, cardElementOptions } from "./card-section";
 import { FormActions } from "./form-actions";
 import { Plan } from "@/utils/stripe-utils";
 import { supabase } from "@/integrations/supabase/client";
+import { isAdminEmail } from "@/contexts/auth/auth-utils";
 
 interface CheckoutFormProps {
   onComplete: () => void;
@@ -29,19 +30,20 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
   const elements = useElements();
   const [cardName, setCardName] = useState("");
   const [email, setEmail] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const { toast } = useToast();
 
+  // Check if the email is an admin email
+  useEffect(() => {
+    setIsAdmin(isAdminEmail(email));
+  }, [email]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!stripe || !elements) {
-      // Stripe.js ainda não carregou
-      return;
-    }
-
     if (!cardName) {
       setError("Por favor, informe o nome no cartão.");
       return;
@@ -57,6 +59,35 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
     setError(null);
     
     try {
+      // If this is the admin email, bypass payment processing
+      if (isAdmin) {
+        console.log("Administrador detectado, ignorando processamento de pagamento");
+        
+        // Simulate processing delay
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        
+        // Set success state
+        setSuccess(true);
+        
+        toast({
+          title: "Acesso administrativo concedido",
+          description: "Acesso liberado para conta de administrador!",
+        });
+        
+        // Wait a moment before completing
+        setTimeout(() => {
+          onComplete();
+        }, 1000);
+        
+        return;
+      }
+      
+      // For regular users, process payment
+      if (!stripe || !elements) {
+        // Stripe.js ainda não carregou
+        return;
+      }
+
       // Obter uma referência ao CardElement
       const cardElement = elements.getElement(CardElement);
       
@@ -148,18 +179,30 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         isProcessing={isProcessing}
       />
       
-      {/* Seção do cartão de crédito */}
-      <CardSection 
-        isProcessing={isProcessing} 
-        error={error} 
-      />
+      {/* Admin notification when admin email is detected */}
+      {isAdmin && (
+        <div className="bg-blue-50 border border-blue-100 p-4 rounded-md">
+          <div className="text-blue-700 font-medium mb-1">Conta de Administrador</div>
+          <p className="text-sm text-blue-600">
+            Você está acessando como administrador. Não será necessário fornecer informações de pagamento.
+          </p>
+        </div>
+      )}
+      
+      {/* Seção do cartão de crédito - apenas para usuários não-admin */}
+      {!isAdmin && (
+        <CardSection 
+          isProcessing={isProcessing} 
+          error={error} 
+        />
+      )}
       
       {/* Ações do formulário */}
       <FormActions 
         onCancel={() => onProcessing(false)}
         isProcessing={isProcessing}
         isFormValid={isFormValid}
-        hasStripe={!!stripe}
+        hasStripe={isAdmin || !!stripe}
       />
     </form>
   );
