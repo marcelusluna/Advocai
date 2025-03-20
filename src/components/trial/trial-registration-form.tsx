@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,7 +17,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { Mail, Lock, User } from "lucide-react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useToast } from "@/hooks/use-toast";
-import { getPlanDetails } from "@/utils/stripe-utils";
+import { Plan } from "@/utils/stripe-utils";
 
 const trialSchema = z.object({
   name: z.string().min(2, { message: "Nome deve ter pelo menos 2 caracteres" }),
@@ -34,6 +35,7 @@ interface TrialRegistrationFormProps {
   planName: string;
   onComplete: () => void;
   onCancel: () => void;
+  planDetails: Plan | null;
 }
 
 // Configurações visuais para o CardElement
@@ -58,7 +60,8 @@ const cardElementOptions = {
 const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
   planName,
   onComplete,
-  onCancel
+  onCancel,
+  planDetails
 }) => {
   const { signup } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -66,8 +69,6 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
-
-  const planDetails = getPlanDetails(planName);
 
   const form = useForm<TrialFormValues>({
     resolver: zodResolver(trialSchema),
@@ -111,7 +112,7 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
       // Em uma aplicação real, enviaríamos o ID do método de pagamento para o backend
       // para criar uma assinatura com período de teste
       console.log('Payment method created:', paymentMethod.id);
-      console.log(`Trial period: ${planDetails.trialPeriodDays} days for plan ${planName}`);
+      console.log(`Trial period: ${planDetails?.trialPeriodDays} days for plan ${planName}`);
       
       // Registrar o usuário com os dados do plano e método de pagamento
       await signup(
@@ -124,7 +125,7 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
       
       toast({
         title: "Registro concluído",
-        description: `Sua conta foi criada com sucesso e seu período de teste de ${planDetails.trialPeriodDays} dias começou.`,
+        description: `Sua conta foi criada com sucesso e seu período de teste de ${planDetails?.trialPeriodDays} dias começou.`,
       });
       
       onComplete();
@@ -248,7 +249,7 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
             </div>
             <div className="flex justify-between items-center">
               <span className="font-medium text-gray-700">Período de teste:</span>
-              <span className="font-semibold">{planDetails.trialPeriodDays} dias grátis</span>
+              <span className="font-semibold">{planDetails?.trialPeriodDays} dias grátis</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="font-medium text-gray-700">Valor após o período de teste:</span>
@@ -256,7 +257,7 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency',
                   currency: 'BRL',
-                }).format(planDetails.price)}/mês
+                }).format(planDetails?.price || 0)}/mês
               </span>
             </div>
           </div>
