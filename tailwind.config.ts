@@ -110,6 +110,10 @@ export default {
 				'slide-right': {
 					from: { transform: 'translateX(-10px)', opacity: '0' },
 					to: { transform: 'translateX(0)', opacity: '1' }
+				},
+				'stripe-loading': {
+					'0%': { backgroundPosition: '0 0' },
+					'100%': { backgroundPosition: '100% 0' }
 				}
 			},
 			animation: {
@@ -121,7 +125,14 @@ export default {
 				'slide-up': 'slide-up 0.3s ease-out',
 				'slide-down': 'slide-down 0.3s ease-out',
 				'slide-left': 'slide-left 0.3s ease-out',
-				'slide-right': 'slide-right 0.3s ease-out'
+				'slide-right': 'slide-right 0.3s ease-out',
+				'stripe-loading': 'stripe-loading 1.5s infinite linear'
+			},
+			backgroundSize: {
+				'stripe-gradient': '400% 100%'
+			},
+			backgroundImage: {
+				'stripe-gradient': 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)'
 			}
 		}
 	},
