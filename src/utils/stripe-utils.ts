@@ -55,6 +55,7 @@ export const fetchPlansFromDatabase = async (): Promise<Record<string, Plan>> =>
       };
     });
     
+    console.log("Planos carregados do banco de dados:", plansRecord);
     return plansRecord;
   } catch (error) {
     console.error("Erro ao buscar planos do banco de dados:", error);

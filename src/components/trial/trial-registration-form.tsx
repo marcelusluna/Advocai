@@ -249,7 +249,7 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
             </div>
             <div className="flex justify-between items-center">
               <span className="font-medium text-gray-700">Período de teste:</span>
-              <span className="font-semibold">{planDetails?.trialPeriodDays} dias grátis</span>
+              <span className="font-semibold">{planDetails?.trialPeriodDays || 14} dias grátis</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="font-medium text-gray-700">Valor após o período de teste:</span>

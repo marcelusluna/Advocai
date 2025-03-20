@@ -24,8 +24,11 @@ const TrialRegistrationDialog: React.FC<TrialRegistrationDialogProps> = ({
   useEffect(() => {
     const fetchPlanData = async () => {
       try {
-        const details = await getPlanDetails(planName);
-        setPlanDetails(details);
+        if (isOpen) {
+          const details = await getPlanDetails(planName);
+          console.log("Detalhes do plano carregados:", details);
+          setPlanDetails(details);
+        }
       } catch (error) {
         console.error("Erro ao buscar detalhes do plano:", error);
       } finally {
@@ -33,9 +36,7 @@ const TrialRegistrationDialog: React.FC<TrialRegistrationDialogProps> = ({
       }
     };
     
-    if (isOpen) {
-      fetchPlanData();
-    }
+    fetchPlanData();
   }, [isOpen, planName]);
 
   return (
