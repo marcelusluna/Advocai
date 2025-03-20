@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { CreditCard, Lock } from "lucide-react";
+import { CreditCard, Lock, Mail } from "lucide-react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { PaymentSuccessView } from "./payment-success";
 import { getPlanDetails } from "@/utils/stripe-utils";
