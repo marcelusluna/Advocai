@@ -22,12 +22,19 @@ export const plans = {
   avançado: {
     id: 'advanced',
     price: 147,
-    trialPeriodDays: 14
+    trialPeriodDays: 14,
+    priceId: 'price_1R4nxFRtWossoVT0Tme3VYbJ'
   },
   personalizado: {
     id: 'custom',
     price: 297,
     trialPeriodDays: 14
+  },
+  profissional: {
+    id: 'professional',
+    price: 197,
+    trialPeriodDays: 14,
+    priceId: 'price_1R4nwpRtWossoVT0mkaZj0Sd'
   }
 };
 
@@ -44,6 +51,8 @@ export const getPlanDetails = (planName: string) => {
       return plans.avançado;
     case 'personalizado':
       return plans.personalizado;
+    case 'profissional':
+      return plans.profissional;
     default:
       return plans.básico; // Default to básico if not found
   }
