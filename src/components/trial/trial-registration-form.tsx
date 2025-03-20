@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +16,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { Mail, Lock, User } from "lucide-react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useToast } from "@/hooks/use-toast";
+import { getPlanDetails } from "@/utils/stripe-utils";
 
 const trialSchema = z.object({
   name: z.string().min(2, { message: "Nome deve ter pelo menos 2 caracteres" }),
@@ -67,6 +67,8 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
   const elements = useElements();
   const { toast } = useToast();
 
+  const planDetails = getPlanDetails(planName);
+
   const form = useForm<TrialFormValues>({
     resolver: zodResolver(trialSchema),
     defaultValues: {
@@ -92,26 +94,37 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
         throw new Error("Não foi possível processar o cartão");
       }
 
-      // Criar token do cartão (em produção, isso seria feito com PaymentMethod)
-      const { error, token } = await stripe.createToken(cardElement);
+      // Criar método de pagamento (que será usado para cobranças futuras)
+      const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({
+        type: 'card',
+        card: cardElement,
+        billing_details: {
+          name: values.name,
+          email: values.email,
+        },
+      });
       
-      if (error) {
-        throw new Error(error.message);
+      if (pmError) {
+        throw new Error(pmError.message);
       }
 
-      // Em um app real, enviaríamos este token para o backend
-      // Aqui apenas registramos o usuário com os dados do plano
+      // Em uma aplicação real, enviaríamos o ID do método de pagamento para o backend
+      // para criar uma assinatura com período de teste
+      console.log('Payment method created:', paymentMethod.id);
+      console.log(`Trial period: ${planDetails.trialPeriodDays} days for plan ${planName}`);
+      
+      // Registrar o usuário com os dados do plano e método de pagamento
       await signup(
         values.name, 
         values.email, 
         values.password, 
         planName,
-        token.id // Em produção, usaríamos o token ou payment method ID
+        paymentMethod.id
       );
       
       toast({
         title: "Registro concluído",
-        description: "Sua conta foi criada com sucesso e seu período de teste de 14 dias começou.",
+        description: `Sua conta foi criada com sucesso e seu período de teste de ${planDetails.trialPeriodDays} dias começou.`,
       });
       
       onComplete();
@@ -235,7 +248,16 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
             </div>
             <div className="flex justify-between items-center">
               <span className="font-medium text-gray-700">Período de teste:</span>
-              <span className="font-semibold">14 dias grátis</span>
+              <span className="font-semibold">{planDetails.trialPeriodDays} dias grátis</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-medium text-gray-700">Valor após o período de teste:</span>
+              <span className="font-semibold text-primary">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                }).format(planDetails.price)}/mês
+              </span>
             </div>
           </div>
 

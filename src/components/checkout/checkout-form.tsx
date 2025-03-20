@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { CreditCard, Lock, CheckCircle } from "lucide-react";
+import { CreditCard, Lock } from "lucide-react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { PaymentSuccessView } from "./payment-success";
+import { getPlanDetails } from "@/utils/stripe-utils";
 
 // Configurações visuais para o CardElement
 const cardElementOptions = {
@@ -44,6 +45,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
   const stripe = useStripe();
   const elements = useElements();
   const [cardName, setCardName] = useState("");
+  const [email, setEmail] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -62,6 +64,11 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
       return;
     }
 
+    if (!email) {
+      setError("Por favor, informe seu email.");
+      return;
+    }
+
     setIsProcessing(true);
     onProcessing(true);
     setError(null);
@@ -74,18 +81,13 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         throw new Error("Não foi possível processar o pagamento.");
       }
 
-      // Validação básica do cartão antes de enviar
-      const { error: validateError } = await stripe.createToken(cardElement);
-      if (validateError) {
-        throw new Error(validateError.message);
-      }
-
       // Criar método de pagamento usando o elemento de cartão
       const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
         type: 'card',
         card: cardElement,
         billing_details: {
           name: cardName,
+          email: email,
         },
       });
 
@@ -93,9 +95,13 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         throw new Error(paymentMethodError.message);
       }
 
+      const planDetails = getPlanDetails(planName);
+      console.log(`Processing payment for plan ${planName} with paymentMethod ${paymentMethod.id}`);
+      console.log(`Amount: ${planDetails.price} BRL`);
+
       // Em uma aplicação real, você enviaria este ID de método de pagamento para seu servidor
       // para criar uma assinatura ou uma intenção de pagamento
-      console.log('Método de pagamento criado:', paymentMethod.id);
+      console.log('Payment method created:', paymentMethod.id);
 
       // Simulação de processamento de pagamento (em produção, isso seria uma chamada de API)
       await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -148,6 +154,23 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
       {/* Formulário de pagamento */}
       <div className="space-y-5">
         <div className="space-y-2">
+          <Label htmlFor="email" className="text-gray-700">Email</Label>
+          <div className="relative">
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="seu@email.com"
+              className="pl-10"
+              disabled={isProcessing}
+              required
+            />
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          </div>
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="cardName" className="text-gray-700">Nome no cartão</Label>
           <div className="relative">
             <Input
@@ -188,14 +211,16 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         <Button
           type="button"
           variant="outline"
-          onClick={() => onProcessing(false)}
+          onClick={() => {
+            onProcessing(false);
+          }}
           disabled={isProcessing}
         >
           Cancelar
         </Button>
         <Button 
           type="submit" 
-          disabled={!stripe || isProcessing || !cardName}
+          disabled={!stripe || isProcessing || !cardName || !email}
           className={`${isProcessing ? "bg-stripe-gradient bg-stripe-loading" : ""}`}
         >
           {isProcessing ? "Processando..." : "Finalizar pagamento"}
