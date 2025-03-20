@@ -635,7 +635,7 @@ const LandingPage: React.FC = () => {
               "border-2 border-primary shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden",
             )}>
               <div className="h-2 bg-gradient-to-r from-indigo-400 to-indigo-600"></div>
-              <div className="absolute -top-4 right-6 transform translate-y-0 z-10">
+              <div className="absolute top-6 right-6 z-10">
                 <Badge 
                   variant="popular" 
                   className="px-4 py-1.5 text-sm font-bold animate-pulse shadow-xl"
