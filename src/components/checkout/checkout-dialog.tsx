@@ -7,10 +7,10 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { CreditCard, Calendar, Lock, CheckCircle } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
-import { Elements, CardElement, useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
-// Inicialize o Stripe com sua chave publicável
-const stripePromise = loadStripe("pk_test_YOUR_PUBLISHABLE_KEY"); // Substitua pela sua chave publicável do Stripe
+// Inicializa o Stripe com a chave publicável fornecida
+const stripePromise = loadStripe("pk_live_51R4id2RtWossoVT0xB9yFMhDr2HTyclYcyKIO4HsRHEe2LxwbN9wAq1TJ4YCv2VFyJAjrKDq9x0KCHgT0XTG24WA00c8ieDbkf");
 
 // Configurações visuais para o CardElement
 const cardElementOptions = {
@@ -172,7 +172,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
               onChange={(e) => setCardName(e.target.value)}
               placeholder="Nome como aparece no cartão"
               className="pl-10"
-              disabled={!stripe || isProcessing}
+              disabled={isProcessing}
             />
             <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           </div>
@@ -180,8 +180,8 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         
         <div className="space-y-2">
           <Label className="text-gray-700">Dados do cartão</Label>
-          <div className="bg-white border rounded-md p-4 transition-all focus-within:ring-2 focus-within:ring-primary focus-within:ring-opacity-40">
-            <CardElement options={cardElementOptions} disabled={isProcessing} />
+          <div className={`bg-white border rounded-md p-4 transition-all ${isProcessing ? 'opacity-50' : ''} focus-within:ring-2 focus-within:ring-primary focus-within:ring-opacity-40`}>
+            <CardElement options={cardElementOptions} />
           </div>
           
           <div className="flex items-center text-xs text-gray-500 mt-2">
@@ -205,7 +205,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
           type="button"
           variant="outline"
           onClick={() => onProcessing(false)}
-          disabled={!stripe || isProcessing}
+          disabled={isProcessing}
         >
           Cancelar
         </Button>
