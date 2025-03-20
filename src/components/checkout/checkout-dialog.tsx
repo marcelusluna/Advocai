@@ -5,12 +5,31 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { CreditCard, Calendar, Lock } from "lucide-react";
+import { CreditCard, Calendar, Lock, CheckCircle } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
-import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { Elements, CardElement, useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
 
-// Initialize Stripe with your publishable key
-const stripePromise = loadStripe("pk_test_YOUR_PUBLISHABLE_KEY"); // Replace with your Stripe publishable key
+// Inicialize o Stripe com sua chave publicável
+const stripePromise = loadStripe("pk_test_YOUR_PUBLISHABLE_KEY"); // Substitua pela sua chave publicável do Stripe
+
+// Configurações visuais para o CardElement
+const cardElementOptions = {
+  style: {
+    base: {
+      fontSize: '16px',
+      color: '#424770',
+      fontFamily: 'Inter, system-ui, sans-serif',
+      '::placeholder': {
+        color: '#aab7c4',
+      },
+      iconColor: '#3b82f6',
+    },
+    invalid: {
+      color: '#e11d48',
+      iconColor: '#e11d48',
+    },
+  },
+};
 
 interface CheckoutFormProps {
   onComplete: () => void;
@@ -28,14 +47,16 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
   const stripe = useStripe();
   const elements = useElements();
   const [cardName, setCardName] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!stripe || !elements) {
-      // Stripe.js hasn't loaded yet
+      // Stripe.js ainda não carregou
       return;
     }
 
@@ -44,18 +65,25 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
       return;
     }
 
+    setIsProcessing(true);
     onProcessing(true);
     setError(null);
     
     try {
-      // Get a reference to the CardElement
+      // Obter uma referência ao CardElement
       const cardElement = elements.getElement(CardElement);
       
       if (!cardElement) {
         throw new Error("Não foi possível processar o pagamento.");
       }
 
-      // Create payment method using the card element
+      // Validação básica do cartão antes de enviar
+      const { error: validateError } = await stripe.createToken(cardElement);
+      if (validateError) {
+        throw new Error(validateError.message);
+      }
+
+      // Criar método de pagamento usando o elemento de cartão
       const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
         type: 'card',
         card: cardElement,
@@ -68,19 +96,26 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         throw new Error(paymentMethodError.message);
       }
 
-      // In a real application, you would send this payment method ID to your server
-      // to create a subscription or a payment intent
-      console.log('Payment method created:', paymentMethod.id);
+      // Em uma aplicação real, você enviaria este ID de método de pagamento para seu servidor
+      // para criar uma assinatura ou uma intenção de pagamento
+      console.log('Método de pagamento criado:', paymentMethod.id);
 
-      // For demo purposes, we'll simulate a successful payment
+      // Simulação de processamento de pagamento (em produção, isso seria uma chamada de API)
       await new Promise((resolve) => setTimeout(resolve, 1500));
+      
+      // Configurar estado de sucesso
+      setSuccess(true);
       
       toast({
         title: "Pagamento aprovado",
-        description: "Seu pagamento foi processado com sucesso.",
+        description: "Seu pagamento foi processado com sucesso!",
       });
       
-      onComplete();
+      // Esperar um momento para mostrar a animação de sucesso
+      setTimeout(() => {
+        onComplete();
+      }, 1000);
+      
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Erro no processamento do pagamento";
       setError(errorMessage);
@@ -90,72 +125,96 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         variant: "destructive",
       });
     } finally {
+      setIsProcessing(false);
       onProcessing(false);
     }
   };
 
+  if (success) {
+    return (
+      <div className="flex flex-col items-center justify-center py-8">
+        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+          <CheckCircle className="h-10 w-10 text-green-600" />
+        </div>
+        <h3 className="text-xl font-semibold text-center mb-2">Pagamento confirmado!</h3>
+        <p className="text-center text-gray-600 mb-6">
+          Seu pagamento foi processado com sucesso.
+        </p>
+        <Button onClick={onComplete} className="px-6">
+          Continuar
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 py-4">
-      <div className="space-y-2">
+    <form onSubmit={handleSubmit} className="space-y-6 py-4">
+      {/* Resumo do plano */}
+      <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 space-y-3 mb-2">
         <div className="flex justify-between items-center">
-          <span className="font-medium">Plano:</span>
-          <span>{planName}</span>
+          <span className="font-medium text-gray-700">Plano:</span>
+          <span className="font-semibold">{planName}</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="font-medium">Valor:</span>
-          <span className="font-bold">{planPrice}</span>
+          <span className="font-medium text-gray-700">Valor:</span>
+          <span className="text-xl font-bold text-primary">{planPrice}</span>
         </div>
       </div>
       
-      <div className="border-t pt-4">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="cardName">Nome no cartão</Label>
+      {/* Formulário de pagamento */}
+      <div className="space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor="cardName" className="text-gray-700">Nome no cartão</Label>
+          <div className="relative">
             <Input
               id="cardName"
               value={cardName}
               onChange={(e) => setCardName(e.target.value)}
               placeholder="Nome como aparece no cartão"
-              disabled={!stripe}
+              className="pl-10"
+              disabled={!stripe || isProcessing}
             />
+            <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <Label className="text-gray-700">Dados do cartão</Label>
+          <div className="bg-white border rounded-md p-4 transition-all focus-within:ring-2 focus-within:ring-primary focus-within:ring-opacity-40">
+            <CardElement options={cardElementOptions} disabled={isProcessing} />
           </div>
           
-          <div className="space-y-2">
-            <Label>Dados do cartão</Label>
-            <div className="border rounded-md p-3 bg-white">
-              <CardElement
-                options={{
-                  style: {
-                    base: {
-                      fontSize: '16px',
-                      color: '#424770',
-                      '::placeholder': {
-                        color: '#aab7c4',
-                      },
-                    },
-                    invalid: {
-                      color: '#9e2146',
-                    },
-                  },
-                }}
-              />
-            </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
+          <div className="flex items-center text-xs text-gray-500 mt-2">
+            <Lock className="h-3 w-3 mr-1" />
+            <span>Seus dados estão seguros e criptografados</span>
           </div>
+          
+          {error && (
+            <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm flex items-start mt-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <span>{error}</span>
+            </div>
+          )}
         </div>
       </div>
       
-      <DialogFooter>
+      <DialogFooter className="pt-4">
         <Button
           type="button"
           variant="outline"
           onClick={() => onProcessing(false)}
-          disabled={!stripe}
+          disabled={!stripe || isProcessing}
         >
           Cancelar
         </Button>
-        <Button type="submit" disabled={!stripe}>
-          Finalizar pagamento
+        <Button 
+          type="submit" 
+          disabled={!stripe || isProcessing || !cardName}
+          className={`${isProcessing ? "bg-stripe-gradient bg-stripe-loading" : ""}`}
+        >
+          {isProcessing ? "Processando..." : "Finalizar pagamento"}
         </Button>
       </DialogFooter>
     </form>
@@ -181,7 +240,7 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && !isProcessing && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[450px]">
         <DialogHeader>
           <DialogTitle>Finalizar compra</DialogTitle>
           <DialogDescription>
