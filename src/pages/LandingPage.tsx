@@ -22,33 +22,28 @@ import {
   X,
   ChevronRight
 } from "lucide-react";
-import CheckoutDialog from "@/components/checkout/checkout-dialog";
 import { Badge } from "@/components/ui/badge";
+import TrialRegistrationDialog from "@/components/trial/trial-registration-dialog";
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<{name: string, price: string} | null>(null);
+  const [trialDialogOpen, setTrialDialogOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<{name: string} | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handlePlanSelect = (plan: {name: string, price: string}) => {
+  const handlePlanSelect = (plan: {name: string}) => {
     setSelectedPlan(plan);
-    setCheckoutOpen(true);
+    setTrialDialogOpen(true);
   };
 
-  const handleCheckoutComplete = () => {
-    setCheckoutOpen(false);
-    navigate("/signup", { 
-      state: { 
-        planPurchased: true, 
-        planName: selectedPlan?.name 
-      } 
-    });
+  const handleTrialComplete = () => {
+    setTrialDialogOpen(false);
+    navigate("/dashboard");
   };
 
   const handleCTAClick = () => {
-    setSelectedPlan({name: "Teste", price: "Gratuito por 14 dias"});
-    setCheckoutOpen(true);
+    setSelectedPlan({name: "Teste"});
+    setTrialDialogOpen(true);
   };
 
   return (
@@ -620,10 +615,10 @@ const LandingPage: React.FC = () => {
 
                   <div className="mt-auto">
                     <Button 
-                      onClick={() => handlePlanSelect({name: "Profissional", price: "R$149,90/mês"})} 
+                      onClick={() => handlePlanSelect({name: "Profissional"})} 
                       className="w-full py-6 text-lg"
                     >
-                      Escolher plano
+                      Teste grátis por 14 dias
                     </Button>
                   </div>
                 </div>
@@ -681,10 +676,10 @@ const LandingPage: React.FC = () => {
 
                   <div className="mt-auto">
                     <Button 
-                      onClick={() => handlePlanSelect({name: "Avançado", price: "R$249,90/mês"})} 
+                      onClick={() => handlePlanSelect({name: "Avançado"})} 
                       className="w-full py-6 text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                     >
-                      Escolher plano
+                      Teste grátis por 14 dias
                     </Button>
                   </div>
                 </div>
@@ -712,7 +707,7 @@ const LandingPage: React.FC = () => {
               <Button 
                 size="lg" 
                 className="w-full sm:w-auto text-lg py-6 px-8 bg-white text-blue-700 hover:bg-gray-100"
-                onClick={() => handlePlanSelect({name: "Teste", price: "Gratuito por 14 dias"})}
+                onClick={() => handlePlanSelect({name: "Teste"})}
               >
                 Comece grátis por 14 dias
               </Button>
@@ -778,14 +773,13 @@ const LandingPage: React.FC = () => {
         </Container>
       </footer>
 
-      {/* Checkout Dialog */}
+      {/* Trial Registration Dialog */}
       {selectedPlan && (
-        <CheckoutDialog
-          isOpen={checkoutOpen}
-          onClose={() => setCheckoutOpen(false)}
-          onComplete={handleCheckoutComplete}
+        <TrialRegistrationDialog
+          isOpen={trialDialogOpen}
+          onClose={() => setTrialDialogOpen(false)}
+          onComplete={handleTrialComplete}
           planName={selectedPlan.name}
-          planPrice={selectedPlan.price}
         />
       )}
     </div>

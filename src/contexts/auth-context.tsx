@@ -8,13 +8,14 @@ type User = {
   name: string;
   email: string;
   plan?: string;
+  trialEndsAt?: string; // Add trial end date
 };
 
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string, plan?: string) => Promise<void>;
+  signup: (name: string, email: string, password: string, plan?: string, paymentMethod?: string) => Promise<void>;
   logout: () => void;
 };
 
@@ -75,26 +76,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signup = async (name: string, email: string, password: string, plan?: string) => {
+  const signup = async (name: string, email: string, password: string, plan?: string, paymentMethod?: string) => {
     setIsLoading(true);
     try {
       // Mock signup - in a real app, this would call an API
       await new Promise((resolve) => setTimeout(resolve, 1000));
       
       if (name && email && password) {
-        // Create a new user
+        // Calculate trial end date (14 days from now)
+        const trialEndsAt = new Date();
+        trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+        
+        // Create a new user with trial information
         const newUser = {
           id: Date.now().toString(),
           name,
           email,
           plan: plan || "Teste",
+          trialEndsAt: trialEndsAt.toISOString(),
+          paymentMethod: paymentMethod || null,
         };
         
         localStorage.setItem("user", JSON.stringify(newUser));
         setUser(newUser);
+        
         toast({
           title: "Conta criada com sucesso",
-          description: "Bem-vindo ao Advoc.AI!",
+          description: "Bem-vindo ao Advoc.AI! Seu período de teste gratuito de 14 dias começou.",
         });
         navigate("/dashboard");
       } else {
