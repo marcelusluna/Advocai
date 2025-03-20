@@ -1,9 +1,9 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Elements } from "@stripe/react-stripe-js";
 import TrialRegistrationForm from "./trial-registration-form";
-import { stripePromise } from "@/utils/stripe-utils";
+import { stripePromise, getPlanDetails, Plan } from "@/utils/stripe-utils";
 
 interface TrialRegistrationDialogProps {
   isOpen: boolean;
@@ -18,6 +18,26 @@ const TrialRegistrationDialog: React.FC<TrialRegistrationDialogProps> = ({
   onComplete,
   planName,
 }) => {
+  const [planDetails, setPlanDetails] = useState<Plan | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPlanData = async () => {
+      try {
+        const details = await getPlanDetails(planName);
+        setPlanDetails(details);
+      } catch (error) {
+        console.error("Erro ao buscar detalhes do plano:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (isOpen) {
+      fetchPlanData();
+    }
+  }, [isOpen, planName]);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
@@ -29,13 +49,21 @@ const TrialRegistrationDialog: React.FC<TrialRegistrationDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <Elements stripe={stripePromise}>
-          <TrialRegistrationForm 
-            planName={planName}
-            onComplete={onComplete}
-            onCancel={onClose}
-          />
-        </Elements>
+        {loading ? (
+          <div className="py-4 space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+            <div className="h-20 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        ) : (
+          <Elements stripe={stripePromise}>
+            <TrialRegistrationForm 
+              planName={planName}
+              onComplete={onComplete}
+              onCancel={onClose}
+              planDetails={planDetails}
+            />
+          </Elements>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -1,18 +1,21 @@
 
 import { loadStripe } from '@stripe/stripe-js';
+import { supabase } from "@/integrations/supabase/client";
 
-// Define a plan interface to include optional priceId
-interface Plan {
+// Define uma interface para os planos
+export interface Plan {
   id: string;
+  name: string;
   price: number;
   trialPeriodDays: number;
-  priceId?: string; // Make priceId optional
+  priceId?: string;
+  description?: string;
 }
 
-// Initialize Stripe with the publishable key
+// Inicializa o Stripe com a chave pública
 export const stripePromise = loadStripe("pk_live_51R4id2RtWossoVT0xB9yFMhDr2HTyclYcyKIO4HsRHEe2LxwbN9wAq1TJ4YCv2VFyJAjrKDq9x0KCHgT0XTG24WA00c8ieDbkf");
 
-// Helper function to format price as Brazilian currency
+// Função para formatar o preço como moeda brasileira
 export const formatPrice = (price: number): string => {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -20,48 +23,94 @@ export const formatPrice = (price: number): string => {
   }).format(price);
 };
 
-// Plans configuration
-export const plans: Record<string, Plan> = {
-  básico: {
-    id: 'basic',
-    price: 97,
-    trialPeriodDays: 14
-  },
-  avançado: {
-    id: 'advanced',
-    price: 147,
-    trialPeriodDays: 14,
-    priceId: 'price_1R4nxFRtWossoVT0Tme3VYbJ'
-  },
-  personalizado: {
-    id: 'custom',
-    price: 297,
-    trialPeriodDays: 14
-  },
-  profissional: {
-    id: 'professional',
-    price: 197,
-    trialPeriodDays: 14,
-    priceId: 'price_1R4nwpRtWossoVT0mkaZj0Sd'
+// Carrega os planos do banco de dados
+export const fetchPlansFromDatabase = async (): Promise<Record<string, Plan>> => {
+  try {
+    const { data, error } = await supabase
+      .from('planos')
+      .select('*')
+      .eq('is_ativo', true);
+    
+    if (error) {
+      console.error("Erro ao buscar planos:", error);
+      return getDefaultPlans();
+    }
+    
+    if (!data || data.length === 0) {
+      console.warn("Nenhum plano encontrado no banco de dados");
+      return getDefaultPlans();
+    }
+    
+    // Converte os dados da tabela para o formato esperado pela aplicação
+    const plansRecord: Record<string, Plan> = {};
+    
+    data.forEach(plan => {
+      plansRecord[plan.nome.toLowerCase()] = {
+        id: plan.codigo,
+        name: plan.nome,
+        price: Number(plan.preco),
+        trialPeriodDays: plan.periodo_trial_dias,
+        priceId: plan.stripe_price_id,
+        description: plan.descricao
+      };
+    });
+    
+    return plansRecord;
+  } catch (error) {
+    console.error("Erro ao buscar planos do banco de dados:", error);
+    return getDefaultPlans();
   }
 };
 
-// Get plan details by name
-export const getPlanDetails = (planName: string): Plan => {
+// Planos padrão como fallback caso não seja possível acessar o banco de dados
+const getDefaultPlans = (): Record<string, Plan> => {
+  return {
+    'profissional': {
+      id: 'professional',
+      name: 'Profissional',
+      price: 149.90,
+      trialPeriodDays: 14,
+      priceId: 'price_1R4nwpRtWossoVT0mkaZj0Sd'
+    },
+    'avançado': {
+      id: 'advanced',
+      name: 'Avançado',
+      price: 249.90,
+      trialPeriodDays: 14,
+      priceId: 'price_1R4nxFRtWossoVT0Tme3VYbJ'
+    }
+  };
+};
+
+// Cache para os planos
+let cachedPlans: Record<string, Plan> | null = null;
+
+// Obter planos (do cache ou do banco de dados)
+export const getPlans = async (): Promise<Record<string, Plan>> => {
+  if (!cachedPlans) {
+    cachedPlans = await fetchPlansFromDatabase();
+  }
+  return cachedPlans;
+};
+
+// Função para obter detalhes de um plano por nome
+export const getPlanDetails = async (planName: string): Promise<Plan> => {
+  const plans = await getPlans();
   const normalizedName = planName.toLowerCase();
   
+  // Busca o plano pelo nome normalizado
+  if (plans[normalizedName]) {
+    return plans[normalizedName];
+  }
+  
+  // Fallback para planos alternativos
   switch (normalizedName) {
-    case 'básico':
     case 'basico':
-      return plans.básico;
-    case 'avançado':
-    case 'avancado':
-      return plans.avançado;
+    case 'básico':
+      return plans['profissional']; // Redireciona para o plano Profissional
     case 'personalizado':
-      return plans.personalizado;
-    case 'profissional':
-      return plans.profissional;
+      return plans['avançado']; // Redireciona para o plano Avançado
     default:
-      return plans.básico; // Default to básico if not found
+      return plans['profissional']; // Default para o plano Profissional
   }
 };

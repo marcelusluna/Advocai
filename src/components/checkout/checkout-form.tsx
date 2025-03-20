@@ -2,25 +2,28 @@
 import React, { useState } from "react";
 import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import { useToast } from "@/hooks/use-toast";
-import { getPlanDetails } from "@/utils/stripe-utils";
 import { PaymentSuccessView } from "./payment-success";
 import { PlanSummary } from "./plan-summary";
 import { CustomerInfoForm } from "./customer-info-form";
 import { CardSection, cardElementOptions } from "./card-section";
 import { FormActions } from "./form-actions";
+import { Plan } from "@/utils/stripe-utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CheckoutFormProps {
   onComplete: () => void;
   onProcessing: (processing: boolean) => void;
   planName: string;
   planPrice: string;
+  planDetails?: Plan | null;
 }
 
 const CheckoutForm: React.FC<CheckoutFormProps> = ({
   onComplete,
   onProcessing,
   planName,
-  planPrice
+  planPrice,
+  planDetails
 }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -75,14 +78,25 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
         throw new Error(paymentMethodError.message);
       }
 
-      const planDetails = getPlanDetails(planName);
+      // Log dos detalhes do pagamento
       console.log(`Processing payment for plan ${planName} with paymentMethod ${paymentMethod.id}`);
-      console.log(`Amount: ${planDetails.price} BRL`);
+      console.log(`Amount: ${planDetails?.price || 'N/A'} BRL`);
+      console.log(`Plan Price ID: ${planDetails?.priceId || 'N/A'}`);
 
       // Em uma aplicação real, você enviaria este ID de método de pagamento para seu servidor
       // para criar uma assinatura ou uma intenção de pagamento
       console.log('Payment method created:', paymentMethod.id);
 
+      // Aqui poderia ser feito uma chamada para o Edge Function que processa o pagamento
+      // const { data, error: paymentError } = await supabase.functions.invoke('process-payment', {
+      //   body: {
+      //     paymentMethodId: paymentMethod.id,
+      //     email,
+      //     planId: planDetails?.id,
+      //     priceId: planDetails?.priceId
+      //   }
+      // });
+      
       // Simulação de processamento de pagamento (em produção, isso seria uma chamada de API)
       await new Promise((resolve) => setTimeout(resolve, 1500));
       

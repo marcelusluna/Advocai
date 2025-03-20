@@ -228,6 +228,45 @@ export type Database = {
         }
         Relationships: []
       }
+      planos: {
+        Row: {
+          codigo: string
+          created_at: string
+          descricao: string | null
+          id: string
+          is_ativo: boolean | null
+          nome: string
+          periodo_trial_dias: number
+          preco: number
+          stripe_price_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          is_ativo?: boolean | null
+          nome: string
+          periodo_trial_dias?: number
+          preco: number
+          stripe_price_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          is_ativo?: boolean | null
+          nome?: string
+          periodo_trial_dias?: number
+          preco?: number
+          stripe_price_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       processos: {
         Row: {
           advogado_id: string
