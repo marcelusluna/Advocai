@@ -2,13 +2,14 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 type User = {
   id: string;
   name: string;
   email: string;
   plan?: string;
-  trialEndsAt?: string; // Add trial end date
+  trialEndsAt?: string;
 };
 
 type AuthContextType = {
@@ -28,49 +29,110 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for stored user on mount
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    // Check for Supabase session on mount
+    const getInitialSession = async () => {
+      try {
+        setIsLoading(true);
+        const { data } = await supabase.auth.getSession();
+        
+        if (data.session) {
+          // Get user data from localStorage or create minimal object
+          const storedUser = localStorage.getItem("user");
+          if (storedUser) {
+            setUser(JSON.parse(storedUser));
+          } else if (data.session.user) {
+            // Create minimal user object if we have auth but no stored user data
+            const { email, id } = data.session.user;
+            const minimalUser = {
+              id,
+              name: email?.split("@")[0] || "User",
+              email: email || "",
+            };
+            localStorage.setItem("user", JSON.stringify(minimalUser));
+            setUser(minimalUser);
+          }
+        }
+      } catch (error) {
+        console.error("Error getting session:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === "SIGNED_IN" && session) {
+          // When user signs in, update the user state
+          const { user } = session;
+          const updatedUser = {
+            id: user.id,
+            name: user.email?.split("@")[0] || "User",
+            email: user.email || "",
+          };
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+          setUser(updatedUser);
+        } else if (event === "SIGNED_OUT") {
+          // When user signs out, clear the user state
+          localStorage.removeItem("user");
+          setUser(null);
+        }
+      }
+    );
+
+    getInitialSession();
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // This is a mock authentication - in a real app, this would call an API
-      // Simulating network request
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       
-      // Demo login - in production this would validate credentials against a backend
-      if (email && password) {
-        // Mock user for demo
+      if (error) throw error;
+      
+      if (data.user) {
+        // Fetch user plan information if available
+        const { data: planData, error: planError } = await supabase
+          .from('assinaturas')
+          .select('plano, data_fim')
+          .eq('user_id', data.user.id)
+          .maybeSingle();
+        
+        // Create user object with plan information if available
         const loggedInUser = {
-          id: "1",
-          name: email.split("@")[0],
-          email,
-          plan: "Avançado", // Poderia vir do backend
+          id: data.user.id,
+          name: data.user.email?.split("@")[0] || "User",
+          email: data.user.email || "",
+          plan: planData?.plano || "Teste",
+          trialEndsAt: planData?.data_fim,
         };
         
         localStorage.setItem("user", JSON.stringify(loggedInUser));
         setUser(loggedInUser);
+        
         toast({
           title: "Login realizado com sucesso",
           description: "Bem-vindo ao Advoc.AI!",
         });
-        // Note: Navigation is now handled in the Login component
-      } else {
-        throw new Error("Invalid credentials");
+        
+        navigate("/dashboard");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Erro no login",
-        description: "Credenciais inválidas. Tente novamente.",
+        description: error.message || "Credenciais inválidas. Tente novamente.",
         variant: "destructive",
       });
       console.error("Login error:", error);
-      throw error; // Re-throw to handle in component
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -79,22 +141,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signup = async (name: string, email: string, password: string, plan?: string, paymentMethod?: string) => {
     setIsLoading(true);
     try {
-      // Mock signup - in a real app, this would call an API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Register the user with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+          },
+        },
+      });
       
-      if (name && email && password) {
+      if (authError) throw authError;
+      
+      if (authData.user) {
         // Calculate trial end date (14 days from now)
         const trialEndsAt = new Date();
         trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+        const trialEndDate = trialEndsAt.toISOString().split('T')[0]; // Format as YYYY-MM-DD
         
-        // Create a new user with trial information
+        // Create subscription record in assinaturas table
+        if (plan) {
+          const { data: planData } = await supabase
+            .from('planos')
+            .select('preco')
+            .eq('nome', plan)
+            .maybeSingle();
+          
+          const preco = planData?.preco || 0;
+          
+          // Insert subscription record
+          const { error: subscriptionError } = await supabase
+            .from('assinaturas')
+            .insert({
+              user_id: authData.user.id,
+              plano: plan,
+              data_inicio: new Date().toISOString().split('T')[0],
+              data_fim: trialEndDate,
+              preco: preco,
+              status: 'trial',
+              stripe_payment_method_id: paymentMethod || null,
+            });
+          
+          if (subscriptionError) {
+            console.error("Error creating subscription:", subscriptionError);
+          }
+        }
+        
+        // Create user profile record
         const newUser = {
-          id: Date.now().toString(),
+          id: authData.user.id,
           name,
           email,
           plan: plan || "Teste",
-          trialEndsAt: trialEndsAt.toISOString(),
-          paymentMethod: paymentMethod || null,
+          trialEndsAt: trialEndDate,
         };
         
         localStorage.setItem("user", JSON.stringify(newUser));
@@ -104,14 +204,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: "Conta criada com sucesso",
           description: "Bem-vindo ao Advoc.AI! Seu período de teste gratuito de 14 dias começou.",
         });
+        
         navigate("/dashboard");
-      } else {
-        throw new Error("Missing required fields");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Erro no cadastro",
-        description: "Não foi possível criar sua conta. Tente novamente.",
+        description: error.message || "Não foi possível criar sua conta. Tente novamente.",
         variant: "destructive",
       });
       console.error("Signup error:", error);
@@ -120,14 +219,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
-    toast({
-      title: "Logout realizado",
-      description: "Você saiu da sua conta.",
-    });
-    navigate("/");
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      localStorage.removeItem("user");
+      setUser(null);
+      toast({
+        title: "Logout realizado",
+        description: "Você saiu da sua conta.",
+      });
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   return (

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -109,10 +108,8 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
         throw new Error(pmError.message);
       }
 
-      // Em uma aplicação real, enviaríamos o ID do método de pagamento para o backend
-      // para criar uma assinatura com período de teste
       console.log('Payment method created:', paymentMethod.id);
-      console.log(`Trial period: ${planDetails?.trialPeriodDays} days for plan ${planName}`);
+      console.log(`Trial period: ${planDetails?.trialPeriodDays || 14} days for plan ${planName}`);
       
       // Registrar o usuário com os dados do plano e método de pagamento
       await signup(
@@ -125,7 +122,7 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
       
       toast({
         title: "Registro concluído",
-        description: `Sua conta foi criada com sucesso e seu período de teste de ${planDetails?.trialPeriodDays} dias começou.`,
+        description: `Sua conta foi criada com sucesso e seu período de teste de ${planDetails?.trialPeriodDays || 14} dias começou.`,
       });
       
       onComplete();
