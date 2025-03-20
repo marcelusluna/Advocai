@@ -4,6 +4,7 @@ import { User } from "./types";
 
 // Special admin email
 const ADMIN_EMAIL = "marcelusluna09@gmail.com";
+const ADMIN_PASSWORD = "Ms091098@"; // Storing this for validation purposes
 
 // Fetch user data from Supabase
 export const fetchUserData = async (userId: string): Promise<User | null> => {
@@ -47,4 +48,9 @@ export const fetchUserData = async (userId: string): Promise<User | null> => {
 // Check if an email belongs to the admin user
 export const isAdminEmail = (email: string): boolean => {
   return email === ADMIN_EMAIL;
+};
+
+// Check if credentials match the admin user
+export const isAdminCredentials = (email: string, password: string): boolean => {
+  return email === ADMIN_EMAIL && password === ADMIN_PASSWORD;
 };

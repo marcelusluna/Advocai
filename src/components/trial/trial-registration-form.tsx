@@ -38,7 +38,6 @@ interface TrialRegistrationFormProps {
   planDetails: Plan | null;
 }
 
-// Configurações visuais para o CardElement
 const cardElementOptions = {
   style: {
     base: {
@@ -81,7 +80,6 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
     },
   });
 
-  // Check if the current email is the admin email
   const watchedEmail = form.watch("email");
   useEffect(() => {
     setIsAdminUser(isAdminEmail(watchedEmail));
@@ -92,7 +90,6 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
     setCardError(null);
 
     try {
-      // If this is the admin email, bypass the card verification
       if (isAdminUser) {
         await signup(
           values.name, 
@@ -109,18 +106,15 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
         return;
       }
 
-      // For regular users, validate the card
       if (!stripe || !elements) {
         throw new Error("Stripe não inicializado");
       }
 
-      // Validate the card
       const cardElement = elements.getElement(CardElement);
       if (!cardElement) {
         throw new Error("Não foi possível processar o cartão");
       }
 
-      // Create payment method (to be used for future charges)
       const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({
         type: 'card',
         card: cardElement,
@@ -137,7 +131,6 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
       console.log('Payment method created:', paymentMethod.id);
       console.log(`Trial period: ${planDetails?.trialPeriodDays || 14} days for plan ${planName}`);
       
-      // Register the user with plan and payment method data
       await signup(
         values.name, 
         values.email, 
@@ -169,7 +162,6 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Informações do usuário */}
         <div className="space-y-4">
           <FormField
             control={form.control}
@@ -263,7 +255,6 @@ const TrialRegistrationForm: React.FC<TrialRegistrationFormProps> = ({
           />
         </div>
 
-        {/* Informações de pagamento - Only show for non-admin users */}
         {!isAdminUser ? (
           <div className="mt-6 space-y-2">
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 space-y-3 mb-2">

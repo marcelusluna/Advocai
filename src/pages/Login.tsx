@@ -19,6 +19,7 @@ import { useAuth } from "@/contexts/auth"; // Updated import
 import { Mail, Lock } from "lucide-react";
 import Logo from "@/components/ui/logo";
 import { useToast } from "@/hooks/use-toast";
+import { isAdminCredentials } from "@/contexts/auth/auth-utils";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Email inválido" }),
@@ -44,6 +45,16 @@ const Login: React.FC = () => {
   const onSubmit = async (values: LoginFormValues) => {
     setError(null);
     try {
+      // Check if these are admin credentials
+      const isAdmin = isAdminCredentials(values.email, values.password);
+      
+      if (isAdmin) {
+        toast({
+          title: "Login de administrador",
+          description: "Bem-vindo! Você está acessando como administrador com acesso total.",
+        });
+      }
+      
       await login(values.email, values.password);
       navigate("/dashboard");
     } catch (err) {

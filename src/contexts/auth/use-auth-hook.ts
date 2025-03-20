@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -12,7 +11,6 @@ export const useAuthHook = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Function to refresh user data
   const refreshUserData = async () => {
     if (!user?.id) return;
     
@@ -27,7 +25,6 @@ export const useAuthHook = () => {
     }
   };
 
-  // Initialize session and user data
   useEffect(() => {
     const getInitialSession = async () => {
       try {
@@ -35,29 +32,24 @@ export const useAuthHook = () => {
         const { data } = await supabase.auth.getSession();
         
         if (data.session) {
-          // Get user data from localStorage or create minimal object
           const storedUser = localStorage.getItem("user");
           
           if (storedUser) {
-            // Use stored data temporarily
             const parsedUser = JSON.parse(storedUser);
             setUser(parsedUser);
             
-            // Update data in background
             const freshUserData = await fetchUserData(data.session.user.id);
             if (freshUserData) {
               setUser(freshUserData);
               localStorage.setItem("user", JSON.stringify(freshUserData));
             }
           } else if (data.session.user) {
-            // Fetch complete user data
             const userData = await fetchUserData(data.session.user.id);
             
             if (userData) {
               setUser(userData);
               localStorage.setItem("user", JSON.stringify(userData));
             } else {
-              // Create minimal object if data not found
               const { email, id } = data.session.user;
               const minimalUser = {
                 id,
@@ -76,20 +68,17 @@ export const useAuthHook = () => {
       }
     };
 
-    // Set up listener for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log("Auth state change:", event);
         
         if (event === "SIGNED_IN" && session) {
-          // When user logs in, update user state
           const userData = await fetchUserData(session.user.id);
           
           if (userData) {
             localStorage.setItem("user", JSON.stringify(userData));
             setUser(userData);
           } else {
-            // Fallback if data not found
             const updatedUser = {
               id: session.user.id,
               name: session.user.email?.split("@")[0] || "Usuário",
@@ -99,7 +88,6 @@ export const useAuthHook = () => {
             setUser(updatedUser);
           }
         } else if (event === "SIGNED_OUT") {
-          // When user logs out, clear user state
           localStorage.removeItem("user");
           setUser(null);
         }
@@ -108,13 +96,11 @@ export const useAuthHook = () => {
 
     getInitialSession();
 
-    // Clean up subscription on unmount
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
-  // Login function
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
@@ -126,11 +112,9 @@ export const useAuthHook = () => {
       if (error) throw error;
       
       if (data.user) {
-        // Check if this is the admin email
         const isAdmin = isAdminEmail(email);
         
         if (isAdmin) {
-          // For admin user, create special admin profile
           const adminUser = {
             id: data.user.id,
             name: data.user.email?.split("@")[0] || "Admin",
@@ -147,14 +131,12 @@ export const useAuthHook = () => {
             description: "Bem-vindo ao painel de administração!",
           });
         } else {
-          // For regular users, fetch complete user data
           const userData = await fetchUserData(data.user.id);
           
           if (userData) {
             localStorage.setItem("user", JSON.stringify(userData));
             setUser(userData);
           } else {
-            // Fallback to minimal user object
             const loggedInUser = {
               id: data.user.id,
               name: data.user.email?.split("@")[0] || "Usuário",
@@ -186,15 +168,10 @@ export const useAuthHook = () => {
     }
   };
 
-  // Signup function
   const signup = async (name: string, email: string, password: string, plan?: string, paymentMethod?: string) => {
     setIsLoading(true);
     try {
-      // Check if this is the admin email
       if (isAdminEmail(email)) {
-        // For admin email, no payment method is required
-        
-        // Register admin user with Supabase Auth
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password,
@@ -209,7 +186,6 @@ export const useAuthHook = () => {
         if (authError) throw authError;
         
         if (authData.user) {
-          // Create admin user object
           const adminUser = {
             id: authData.user.id,
             name,
@@ -229,8 +205,6 @@ export const useAuthHook = () => {
           navigate("/dashboard");
         }
       } else {
-        // Standard registration process for regular users
-        // Register user with Supabase Auth
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password,
@@ -244,12 +218,10 @@ export const useAuthHook = () => {
         if (authError) throw authError;
         
         if (authData.user) {
-          // Calculate trial end date (14 days from now)
           const trialEndsAt = new Date();
           trialEndsAt.setDate(trialEndsAt.getDate() + 14);
-          const trialEndDate = trialEndsAt.toISOString().split('T')[0]; // Format YYYY-MM-DD
+          const trialEndDate = trialEndsAt.toISOString().split('T')[0];
           
-          // Create subscription record in assinaturas table
           if (plan) {
             const { data: planData } = await supabase
               .from('planos')
@@ -259,7 +231,6 @@ export const useAuthHook = () => {
             
             const preco = planData?.preco || 0;
             
-            // Insert subscription record
             const { error: subscriptionError } = await supabase
               .from('assinaturas')
               .insert({
@@ -277,7 +248,6 @@ export const useAuthHook = () => {
             }
           }
           
-          // Create user object with all data
           const newUser = {
             id: authData.user.id,
             name,
@@ -311,7 +281,6 @@ export const useAuthHook = () => {
     }
   };
 
-  // Logout function
   const logout = async () => {
     try {
       await supabase.auth.signOut();
