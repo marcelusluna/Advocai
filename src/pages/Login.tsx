@@ -53,6 +53,7 @@ const Login: React.FC = () => {
           title: "Login de administrador",
           description: "Bem-vindo! Você está acessando como administrador com acesso total.",
         });
+        console.log("Admin login detected, proceeding with admin credentials");
       }
       
       await login(values.email, values.password);

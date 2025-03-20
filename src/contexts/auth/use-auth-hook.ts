@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "./types";
-import { fetchUserData, isAdminEmail } from "./auth-utils";
+import { fetchUserData, isAdminEmail, isAdminCredentials } from "./auth-utils";
 
 export const useAuthHook = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -104,6 +105,78 @@ export const useAuthHook = () => {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
+      // Special case for admin login
+      if (isAdminCredentials(email, password)) {
+        console.log("Admin credentials detected, performing admin login");
+        
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        if (error) {
+          console.error("Admin login error:", error);
+          // If the admin account doesn't exist yet in Supabase, create it
+          if (error.message.includes("Invalid login credentials")) {
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+              email,
+              password,
+              options: {
+                data: {
+                  name: "Administrador",
+                  isAdmin: true
+                },
+              },
+            });
+            
+            if (signUpError) throw signUpError;
+            
+            if (signUpData.user) {
+              const adminUser: User = {
+                id: signUpData.user.id,
+                name: "Administrador",
+                email: email,
+                plan: "Administrador",
+                isAdmin: true
+              };
+              
+              localStorage.setItem("user", JSON.stringify(adminUser));
+              setUser(adminUser);
+              
+              toast({
+                title: "Conta de administrador criada",
+                description: "Bem-vindo ao painel de administração!",
+              });
+              
+              return;
+            }
+          } else {
+            throw error;
+          }
+        }
+        
+        if (data.user) {
+          const adminUser: User = {
+            id: data.user.id,
+            name: data.user.user_metadata?.name || "Administrador",
+            email: data.user.email || "",
+            plan: "Administrador",
+            isAdmin: true
+          };
+          
+          localStorage.setItem("user", JSON.stringify(adminUser));
+          setUser(adminUser);
+          
+          toast({
+            title: "Login de administrador",
+            description: "Bem-vindo ao painel de administração!",
+          });
+        }
+        
+        return;
+      }
+      
+      // Regular user login
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
