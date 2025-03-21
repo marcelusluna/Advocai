@@ -186,8 +186,11 @@ const RecentClients: React.FC = () => {
             telefone: formData.phone || "",
             tipo: formData.type || "Pessoa Física",
             documento: formData.document || "",
-            endereco: formData.address || ""
+            endereco: formData.address || "",
+            created_at: new Date().toISOString()
           };
+          
+          console.log("Enviando dados para o Supabase:", clientData);
           
           // Inserir no Supabase
           const { data, error } = await supabase
@@ -196,9 +199,14 @@ const RecentClients: React.FC = () => {
             .select()
             .single();
           
-          if (error) throw error;
+          if (error) {
+            console.error("Erro detalhado do Supabase:", error);
+            throw error;
+          }
           
           if (data) {
+            console.log("Cliente cadastrado com sucesso:", data);
+            
             // Criar objeto de cliente no formato da aplicação
             const newClient: Client = {
               id: data.id,
@@ -206,13 +214,19 @@ const RecentClients: React.FC = () => {
               type: data.tipo,
               email: data.email,
               phone: data.telefone,
-              date: "Agora"
+              date: "Agora",
+              created_at: data.created_at
             };
             
             // Adicionar o novo cliente ao início da lista
             const updatedClients = [newClient, ...clients.slice(0, clients.length > 4 ? 4 : clients.length)];
             setClients(updatedClients);
             setFilteredClients(updatedClients);
+            
+            // Recarregar a lista de clientes para garantir sincronização
+            setTimeout(() => {
+              fetchClients();
+            }, 1000);
             
             // Exibir mensagem de sucesso
             toast({
