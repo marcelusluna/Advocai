@@ -1,4 +1,25 @@
-# Welcome to your Lovable project
+# Advocai
+
+Sistema de gestão para escritórios de advocacia com inteligência artificial integrada.
+
+## Sobre o Projeto
+
+O Advocai é uma solução completa para escritórios de advocacia que desejam modernizar seus processos e aumentar sua produtividade. O sistema permite gerenciar clientes, processos, documentos e finanças, além de utilizar IA para auxiliar na geração de documentos e petições.
+
+## Configuração do Ambiente
+
+1. Clone o repositório
+2. Crie um arquivo `.env` baseado no `.env.example`
+3. Instale as dependências com `npm install`
+4. Execute o projeto com `npm run dev`
+
+## Tecnologias Utilizadas
+
+- React
+- TypeScript
+- Tailwind CSS
+- Supabase
+- OpenAI API
 
 ## Project info
 
@@ -49,16 +70,6 @@ npm run dev
 - Select the "Codespaces" tab.
 - Click on "New codespace" to launch a new Codespace environment.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
 
 ## How can I deploy this project?
 
