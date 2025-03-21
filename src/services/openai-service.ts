@@ -1,3 +1,13 @@
+// Tipagem para variáveis de ambiente
+interface ImportMetaEnv {
+  VITE_OPENAI_API_KEY: string;
+  [key: string]: any;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
 interface OpenAICompletionRequest {
   model: string;
   messages: {
@@ -16,17 +26,29 @@ interface OpenAICompletionResponse {
   }[];
 }
 
-// A chave da API deve ser fornecida por variável de ambiente
+// A chave da API é fornecida por variável de ambiente
 // Nunca armazene chaves diretamente no código
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || "SUA_CHAVE_API_AQUI";
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || "";
+
+// Modelos disponíveis
+export const OPENAI_MODELS = {
+  GPT_3_5_TURBO: "gpt-3.5-turbo",
+  GPT_4_TURBO: "gpt-4-turbo-preview",
+  GPT_4: "gpt-4"
+};
 
 export const generateWithOpenAI = async (
   prompt: string,
   systemPrompt: string = "Você é um assistente jurídico especializado em direito brasileiro. Suas respostas devem ser precisas e formais.",
-  temperature: number = 0.3
+  temperature: number = 0.3,
+  model: string = OPENAI_MODELS.GPT_3_5_TURBO
 ): Promise<string> => {
+  if (!OPENAI_API_KEY) {
+    throw new Error("Chave da API OpenAI não configurada. Verifique suas variáveis de ambiente.");
+  }
+
   const payload: OpenAICompletionRequest = {
-    model: "gpt-3.5-turbo",
+    model: model,
     messages: [
       {
         role: "system",

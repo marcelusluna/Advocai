@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Wand2, Sparkles, Copy, Save, Download, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { generateWithOpenAI } from "@/services/openai-service";
+import { generateWithOpenAI, OPENAI_MODELS } from "@/services/openai-service";
+import { Loader2 } from "lucide-react";
 
 // Modelos de documentos fictícios
 const documentTemplates = [
@@ -68,25 +69,23 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ onDocumentGenerat
 
   // Função para gerar documento com IA
   const generateWithAI = async () => {
-    if (!aiPrompt.trim()) {
+    if (!documentTemplates.find(t => t.id === selectedTemplate)?.category || !aiPrompt.trim()) {
       toast({
-        title: "Instruções necessárias",
-        description: "Por favor, forneça instruções para a IA gerar o documento.",
+        title: "Campos obrigatórios",
+        description: "Por favor, selecione o tipo de documento e forneça instruções para a IA.",
         variant: "destructive",
       });
       return;
     }
 
-    setIsGenerating(true);
-    
     try {
-      // Construir prompt para o ChatGPT
+      setIsGenerating(true);
+      
       const template = documentTemplates.find(t => t.id === selectedTemplate);
       const client = clientsList.find(c => c.id === selectedClient);
       
       const prompt = `
-      Crie um documento jurídico do tipo "${template?.name || "documento jurídico"}" 
-      com o título "${documentTitle || "Documento sem título"}".
+      Preciso que você gere um documento do tipo "${template?.name || "documento jurídico"}" com o seguinte título: "${documentTitle || "Documento Jurídico"}".
       
       ${client ? `Cliente: ${client.name}` : ""}
       ${selectedCase ? `Relacionado ao processo: ${casesList.find(c => c.id === selectedCase)?.title || ""}` : ""}
@@ -98,8 +97,8 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ onDocumentGenerat
 
       const systemPrompt = `Você é um advogado brasileiro altamente qualificado, especializado em redigir documentos jurídicos conforme as normas brasileiras. Sua tarefa é criar um documento jurídico profissional com base nas informações fornecidas pelo usuário.`;
 
-      // Chamar a API do OpenAI
-      const generatedText = await generateWithOpenAI(prompt, systemPrompt);
+      // Chamar a API do OpenAI com o modelo selecionado
+      const generatedText = await generateWithOpenAI(prompt, systemPrompt, 0.3, OPENAI_MODELS.GPT_4);
       
       setDocumentContent(generatedText);
       setIsGenerating(false);
@@ -250,7 +249,7 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ onDocumentGenerat
               >
                 {isGenerating ? (
                   <>
-                    <Sparkles className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Gerando...
                   </>
                 ) : (
