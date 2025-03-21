@@ -1,46 +1,47 @@
-
 interface OpenAICompletionRequest {
   model: string;
-  messages: Array<{
-    role: string;
+  messages: {
+    role: "system" | "user" | "assistant";
     content: string;
-  }>;
+  }[];
   temperature?: number;
   max_tokens?: number;
 }
 
 interface OpenAICompletionResponse {
-  choices: Array<{
+  choices: {
     message: {
       content: string;
     };
-  }>;
+  }[];
 }
 
-// Chave da API OpenAI - em um ambiente de produção, isso seria armazenado de forma segura
-const OPENAI_API_KEY = "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";
+// A chave da API deve ser fornecida por variável de ambiente
+// Nunca armazene chaves diretamente no código
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || "SUA_CHAVE_API_AQUI";
 
 export const generateWithOpenAI = async (
   prompt: string,
-  systemPrompt: string = "Você é um advogado experiente especializado em redigir documentos jurídicos precisos e profissionais."
+  systemPrompt: string = "Você é um assistente jurídico especializado em direito brasileiro. Suas respostas devem ser precisas e formais.",
+  temperature: number = 0.3
 ): Promise<string> => {
-  try {
-    const payload: OpenAICompletionRequest = {
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: systemPrompt
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 2000
-    };
+  const payload: OpenAICompletionRequest = {
+    model: "gpt-3.5-turbo",
+    messages: [
+      {
+        role: "system",
+        content: systemPrompt
+      },
+      {
+        role: "user",
+        content: prompt
+      }
+    ],
+    temperature,
+    max_tokens: 4096
+  };
 
+  try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
