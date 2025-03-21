@@ -1,298 +1,489 @@
-import React, { useState } from "react";
-import { Bell, Calendar, CircleAlert, X, Check, Clock } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import { Bell, ChevronLeft, ChevronRight, Clock, Calendar, Check, X, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/auth/auth-provider";
+import { supabase } from "@/integrations/supabase/client";
+import { format, isToday, isTomorrow, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
-// Dados fictícios para notificações
-const notificacoesData = [
-  {
-    id: "1",
-    tipo: "prazo",
-    titulo: "Prazo Recursal - Processo nº 0001234-12.2023.8.26.0100",
-    descricao: "O prazo para recurso vence em 2 dias",
-    data: "28/07/2023",
-    urgencia: "alta",
-    lida: false
-  },
-  {
-    id: "2",
-    tipo: "audiencia",
-    titulo: "Audiência - Maria Silva",
-    descricao: "Audiência de instrução e julgamento marcada",
-    data: "30/07/2023",
-    hora: "14:30",
-    urgencia: "media",
-    lida: false
-  },
-  {
-    id: "3",
-    tipo: "prazo",
-    titulo: "Prazo - Contestação",
-    descricao: "Prazo para contestação no processo nº 0002345-23.2023.8.26.0100",
-    data: "02/08/2023",
-    urgencia: "alta",
-    lida: true
-  },
-  {
-    id: "4",
-    tipo: "compromisso",
-    titulo: "Reunião com cliente",
-    descricao: "Reunião com João Pereira para discussão do caso",
-    data: "05/08/2023",
-    hora: "10:00",
-    urgencia: "baixa",
-    lida: false
-  },
-];
+// Interface para tipagem das notificações
+interface Notification {
+  id: string;
+  title: string;
+  description: string;
+  type: "info" | "alert" | "warning" | "success";
+  date: string;
+  read: boolean;
+  created_at?: string;
+}
 
-const compromissosData = [
-  {
-    id: "1",
-    titulo: "Audiência de Conciliação",
-    cliente: "Maria Silva",
-    processo: "0001234-12.2023.8.26.0100",
-    data: "28/07/2023",
-    hora: "14:30",
-    local: "Fórum Central"
-  },
-  {
-    id: "2",
-    titulo: "Reunião com cliente",
-    cliente: "Tech Solutions Ltda.",
-    data: "01/08/2023",
-    hora: "10:00",
-    local: "Escritório"
-  },
-  {
-    id: "3",
-    titulo: "Depoimento Testemunha",
-    cliente: "João Pereira",
-    processo: "0003456-34.2023.8.26.0100",
-    data: "03/08/2023",
-    hora: "09:00",
-    local: "Fórum Trabalhista"
-  }
-];
+// Interface para tipagem dos compromissos
+interface Commitment {
+  id: string;
+  title: string;
+  description?: string;
+  date: string;
+  time: string;
+  type: string;
+  completed: boolean;
+  created_at?: string;
+}
 
-const getUrgenciaStyle = (urgencia: string) => {
-  switch (urgencia) {
-    case "alta":
-      return "bg-red-100 text-red-800 border-red-200";
-    case "media":
-      return "bg-yellow-100 text-yellow-800 border-yellow-200";
-    case "baixa":
-      return "bg-green-100 text-green-800 border-green-200";
+const getNotificationIcon = (type: string) => {
+  switch (type) {
+    case "alert":
+      return <Bell className="h-4 w-4 text-red-500" />;
+    case "warning":
+      return <Info className="h-4 w-4 text-amber-500" />;
+    case "success":
+      return <Check className="h-4 w-4 text-green-500" />;
     default:
-      return "bg-blue-100 text-blue-800 border-blue-200";
+      return <Info className="h-4 w-4 text-blue-500" />;
   }
 };
 
 const NotificationsPanel: React.FC = () => {
-  const [notificacoes, setNotificacoes] = useState(notificacoesData);
-  const [compromissos, setCompromissos] = useState(compromissosData);
+  const [activeTab, setActiveTab] = useState("notifications");
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [commitments, setCommitments] = useState<Commitment[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  const marcarComoLida = (id: string) => {
-    setNotificacoes(prev => 
-      prev.map(notif => 
-        notif.id === id ? { ...notif, lida: true } : notif
-      )
-    );
+  useEffect(() => {
+    if (activeTab === "notifications") {
+      fetchNotifications();
+    } else {
+      fetchCommitments();
+    }
+  }, [activeTab, user]);
+
+  // Função para buscar notificações no Supabase
+  const fetchNotifications = async () => {
+    if (!user) return;
     
-    toast({
-      title: "Notificação marcada como lida",
-      description: "A notificação foi marcada como lida com sucesso.",
-    });
+    try {
+      setIsLoading(true);
+      let query = supabase.from('notificacoes').select('*');
+      
+      if (!user.isAdmin) {
+        // Filtra por advogado_id se não for admin
+        query = query.eq('advogado_id', user.id);
+      }
+      
+      // Busca as notificações mais recentes
+      const { data, error } = await query.order('created_at', { ascending: false }).limit(5);
+      
+      if (error) {
+        console.error("Erro ao buscar notificações:", error);
+        toast({
+          title: "Erro ao carregar notificações",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (data) {
+        const mappedNotifications: Notification[] = data.map(notif => {
+          // Formatar data para exibição
+          let created = notif.created_at ? parseISO(notif.created_at) : new Date();
+          let displayDate = "";
+          
+          if (isToday(created)) {
+            displayDate = "Hoje";
+          } else if (isTomorrow(created)) {
+            displayDate = "Ontem";
+          } else {
+            displayDate = format(created, "dd/MM/yyyy", { locale: ptBR });
+          }
+          
+          return {
+            id: notif.id,
+            title: notif.titulo,
+            description: notif.descricao,
+            type: notif.tipo || "info",
+            date: displayDate,
+            read: !!notif.lida,
+            created_at: notif.created_at
+          };
+        });
+        
+        setNotifications(mappedNotifications);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar notificações:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const removerNotificacao = (id: string) => {
-    setNotificacoes(prev => prev.filter(notif => notif.id !== id));
+  // Função para buscar compromissos no Supabase
+  const fetchCommitments = async () => {
+    if (!user) return;
     
-    toast({
-      title: "Notificação removida",
-      description: "A notificação foi removida com sucesso.",
-    });
+    try {
+      setIsLoading(true);
+      let query = supabase.from('compromissos').select('*');
+      
+      if (!user.isAdmin) {
+        // Filtra por advogado_id se não for admin
+        query = query.eq('advogado_id', user.id);
+      }
+      
+      // Busca os compromissos mais próximos
+      const { data, error } = await query.order('data', { ascending: true }).limit(5);
+      
+      if (error) {
+        console.error("Erro ao buscar compromissos:", error);
+        toast({
+          title: "Erro ao carregar compromissos",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (data) {
+        const mappedCommitments: Commitment[] = data.map(commit => {
+          // Formatar data para exibição
+          let date = commit.data ? parseISO(commit.data) : new Date();
+          let displayDate = "";
+          
+          if (isToday(date)) {
+            displayDate = "Hoje";
+          } else if (isTomorrow(date)) {
+            displayDate = "Amanhã";
+          } else {
+            displayDate = format(date, "dd/MM/yyyy", { locale: ptBR });
+          }
+          
+          return {
+            id: commit.id,
+            title: commit.titulo,
+            description: commit.descricao,
+            date: displayDate,
+            time: commit.hora || "00:00",
+            type: commit.tipo || "Reunião",
+            completed: !!commit.concluido,
+            created_at: commit.created_at
+          };
+        });
+        
+        setCommitments(mappedCommitments);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar compromissos:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const removerCompromisso = (id: string) => {
-    setCompromissos(prev => prev.filter(comp => comp.id !== id));
-    
-    toast({
-      title: "Compromisso removido",
-      description: "O compromisso foi removido com sucesso.",
-    });
+  const marcarComoLida = async (notificationId: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Atualizar no Supabase
+      const { error } = await supabase
+        .from('notificacoes')
+        .update({ lida: true })
+        .eq('id', notificationId);
+      
+      if (error) throw error;
+      
+      // Atualizar estado local
+      const updatedNotifications = notifications.map(notification => 
+        notification.id === notificationId ? { ...notification, read: true } : notification
+      );
+      
+      setNotifications(updatedNotifications);
+      
+      toast({
+        title: "Notificação marcada como lida",
+        description: "A notificação foi atualizada com sucesso."
+      });
+    } catch (error: any) {
+      console.error("Erro ao marcar notificação como lida:", error);
+      toast({
+        title: "Erro ao atualizar notificação",
+        description: error.message || "Não foi possível marcar a notificação como lida",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const naoLidas = notificacoes.filter(n => !n.lida).length;
-
-  const verTodasNotificacoes = () => {
-    toast({
-      title: "Visualizar notificações",
-      description: "Redirecionando para a página de todas as notificações.",
-    });
-    // Aqui seria implementada a navegação para a página completa de notificações
+  const removerNotificacao = async (notificationId: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Remover do Supabase
+      const { error } = await supabase
+        .from('notificacoes')
+        .delete()
+        .eq('id', notificationId);
+      
+      if (error) throw error;
+      
+      // Atualizar estado local
+      const updatedNotifications = notifications.filter(
+        notification => notification.id !== notificationId
+      );
+      
+      setNotifications(updatedNotifications);
+      
+      toast({
+        title: "Notificação removida",
+        description: "A notificação foi removida com sucesso."
+      });
+    } catch (error: any) {
+      console.error("Erro ao remover notificação:", error);
+      toast({
+        title: "Erro ao remover notificação",
+        description: error.message || "Não foi possível remover a notificação",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const verTodosCompromissos = () => {
-    toast({
-      title: "Visualizar compromissos",
-      description: "Redirecionando para a página de todos os compromissos.",
-    });
-    // Aqui seria implementada a navegação para a página completa de compromissos
+  const marcarComoConcluido = async (commitmentId: string, completed: boolean) => {
+    try {
+      setIsLoading(true);
+      
+      // Atualizar no Supabase
+      const { error } = await supabase
+        .from('compromissos')
+        .update({ concluido: !completed })
+        .eq('id', commitmentId);
+      
+      if (error) throw error;
+      
+      // Atualizar estado local
+      const updatedCommitments = commitments.map(commitment => 
+        commitment.id === commitmentId ? { ...commitment, completed: !completed } : commitment
+      );
+      
+      setCommitments(updatedCommitments);
+      
+      toast({
+        title: completed ? "Compromisso reaberto" : "Compromisso concluído",
+        description: `O compromisso foi marcado como ${completed ? "não concluído" : "concluído"}.`
+      });
+    } catch (error: any) {
+      console.error("Erro ao atualizar compromisso:", error);
+      toast({
+        title: "Erro ao atualizar compromisso",
+        description: error.message || "Não foi possível atualizar o status do compromisso",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const removerCompromisso = async (commitmentId: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Remover do Supabase
+      const { error } = await supabase
+        .from('compromissos')
+        .delete()
+        .eq('id', commitmentId);
+      
+      if (error) throw error;
+      
+      // Atualizar estado local
+      const updatedCommitments = commitments.filter(
+        commitment => commitment.id !== commitmentId
+      );
+      
+      setCommitments(updatedCommitments);
+      
+      toast({
+        title: "Compromisso removido",
+        description: "O compromisso foi removido com sucesso."
+      });
+    } catch (error: any) {
+      console.error("Erro ao remover compromisso:", error);
+      toast({
+        title: "Erro ao remover compromisso",
+        description: error.message || "Não foi possível remover o compromisso",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <Card className="animate-fade-in delay-200 w-full">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Bell className="h-5 w-5 text-primary" />
-            <CardTitle className="text-lg">Central de Notificações</CardTitle>
-          </div>
-          {naoLidas > 0 && (
-            <div className="bg-primary text-primary-foreground text-xs font-medium rounded-full h-5 min-w-5 flex items-center justify-center px-1.5">
-              {naoLidas}
-            </div>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        <Tabs defaultValue="notificacoes" className="w-full">
-          <TabsList className="w-full mb-2 px-4 pt-2">
-            <TabsTrigger value="notificacoes" className="flex-1">Notificações</TabsTrigger>
-            <TabsTrigger value="compromissos" className="flex-1">Compromissos</TabsTrigger>
+    <div className="bg-card rounded-lg border border-border shadow-sm animate-slide-up delay-400">
+      <Tabs defaultValue="notifications" value={activeTab} onValueChange={setActiveTab}>
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <TabsList className="grid grid-cols-2">
+            <TabsTrigger value="notifications" className="text-xs">Notificações</TabsTrigger>
+            <TabsTrigger value="commitments" className="text-xs">Compromissos</TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="notificacoes" className="mt-0 px-4">
-            <div className="space-y-3 max-h-[280px] overflow-container pr-1">
-              {notificacoes.length > 0 ? (
-                notificacoes.map((notif) => (
-                  <div 
-                    key={notif.id} 
-                    className={cn(
-                      "relative flex items-start p-3 rounded-md border",
-                      notif.lida ? "bg-muted/30 border-border/50" : "bg-card border-border"
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                if (activeTab === "notifications") {
+                  fetchNotifications();
+                } else {
+                  fetchCommitments();
+                }
+              }}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                if (activeTab === "notifications") {
+                  fetchNotifications();
+                } else {
+                  fetchCommitments();
+                }
+              }}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        <TabsContent value="notifications" className="p-0 m-0">
+          <div className="p-2">
+            {isLoading ? (
+              <div className="text-center py-4 text-muted-foreground">
+                Carregando notificações...
+              </div>
+            ) : notifications.length > 0 ? (
+              notifications.map((item) => (
+                <div 
+                  key={item.id} 
+                  className={cn(
+                    "flex items-start justify-between p-3 hover:bg-muted/50 rounded-md transition-colors",
+                    !item.read && "bg-primary/5 border-l-2 border-primary"
+                  )}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5">{getNotificationIcon(item.type)}</div>
+                    <div className="flex flex-col">
+                      <h4 className="text-sm font-medium">{item.title}</h4>
+                      <p className="text-xs text-muted-foreground">{item.description}</p>
+                      <span className="text-xs text-muted-foreground mt-1">{item.date}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {!item.read && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => marcarComoLida(item.id)}
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                      </Button>
                     )}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1 flex-wrap gap-1">
-                        <h4 className={cn(
-                          "text-sm font-medium truncate max-w-[calc(100%-80px)]",
-                          notif.lida ? "text-muted-foreground" : "text-foreground"
-                        )}>
-                          {notif.titulo}
-                        </h4>
-                        <span className={cn(
-                          "text-xs px-2 py-0.5 rounded-full border shrink-0",
-                          getUrgenciaStyle(notif.urgencia)
-                        )}>
-                          {notif.urgencia.charAt(0).toUpperCase() + notif.urgencia.slice(1)}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-destructive"
+                      onClick={() => removerNotificacao(item.id)}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-4 text-muted-foreground">
+                Nenhuma notificação encontrada
+              </div>
+            )}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="commitments" className="p-0 m-0">
+          <div className="p-2">
+            {isLoading ? (
+              <div className="text-center py-4 text-muted-foreground">
+                Carregando compromissos...
+              </div>
+            ) : commitments.length > 0 ? (
+              commitments.map((item) => (
+                <div 
+                  key={item.id} 
+                  className={cn(
+                    "flex items-start justify-between p-3 hover:bg-muted/50 rounded-md transition-colors",
+                    item.completed && "opacity-70"
+                  )}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5">
+                      <Calendar className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex flex-col">
+                      <h4 className={cn(
+                        "text-sm font-medium",
+                        item.completed && "line-through text-muted-foreground"
+                      )}>
+                        {item.title}
+                      </h4>
+                      {item.description && (
+                        <p className="text-xs text-muted-foreground">{item.description}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="h-3 w-3" /> {item.date}
+                        </span>
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" /> {item.time}
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground mb-1 break-words">{notif.descricao}</p>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        {notif.tipo === "prazo" && <CircleAlert className="h-3 w-3 mr-1 text-red-500 shrink-0" />}
-                        {notif.tipo === "audiencia" && <Calendar className="h-3 w-3 mr-1 text-blue-500 shrink-0" />}
-                        {notif.tipo === "compromisso" && <Clock className="h-3 w-3 mr-1 text-green-500 shrink-0" />}
-                        <span>{notif.data}</span>
-                        {notif.hora && <span className="ml-1">às {notif.hora}</span>}
-                      </div>
-                      <div className="flex items-center mt-2 gap-2 flex-wrap">
-                        {!notif.lida && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => marcarComoLida(notif.id)}
-                            className="h-7 text-xs"
-                          >
-                            <Check className="h-3 w-3 mr-1" /> Marcar como lida
-                          </Button>
-                        )}
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => removerNotificacao(notif.id)}
-                          className="h-7 text-xs text-muted-foreground"
-                        >
-                          <X className="h-3 w-3 mr-1" /> Remover
-                        </Button>
-                      </div>
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>Não há notificações para exibir</p>
-                </div>
-              )}
-            </div>
-            <div className="mt-3 text-center py-2 px-1">
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={verTodasNotificacoes}
-              >
-                Ver todas as notificações
-              </Button>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="compromissos" className="mt-0 px-4">
-            <div className="space-y-3 max-h-[280px] overflow-container pr-1">
-              {compromissos.length > 0 ? (
-                compromissos.map((comp) => (
-                  <div 
-                    key={comp.id} 
-                    className="relative flex items-start p-3 rounded-md border bg-card"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="text-sm font-medium truncate">{comp.titulo}</h4>
-                      </div>
-                      <p className="text-xs text-muted-foreground mb-1 break-words">Cliente: {comp.cliente}</p>
-                      {comp.processo && (
-                        <p className="text-xs text-muted-foreground mb-1 break-words">Processo: {comp.processo}</p>
-                      )}
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <Calendar className="h-3 w-3 mr-1 shrink-0" />
-                        <span>{comp.data} às {comp.hora}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">Local: {comp.local}</p>
-                      <div className="flex items-center mt-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => removerCompromisso(comp.id)}
-                          className="h-7 text-xs text-muted-foreground"
-                        >
-                          <X className="h-3 w-3 mr-1" /> Remover
-                        </Button>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => marcarComoConcluido(item.id, item.completed)}
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-destructive"
+                      onClick={() => removerCompromisso(item.id)}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>Não há compromissos para exibir</p>
                 </div>
-              )}
-            </div>
-            <div className="mt-3 text-center py-2 px-1">
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={verTodosCompromissos}
-              >
-                Ver todos os compromissos
-              </Button>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+              ))
+            ) : (
+              <div className="text-center py-4 text-muted-foreground">
+                Nenhum compromisso encontrado
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

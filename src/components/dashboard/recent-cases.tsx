@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Briefcase, Plus, Search, Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -6,42 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { CreateEntityContext } from "@/layouts/main-layout";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/auth/auth-provider";
 
-// Dados de exemplo para processos recentes
-const initialCasesData = [
-  {
-    id: "1",
-    number: "0001234-12.2023.8.26.0100",
-    client: "Maria Silva",
-    type: "Cível",
-    date: "Há 3 dias",
-    stage: "Inicial"
-  },
-  {
-    id: "2",
-    number: "0002345-23.2023.8.26.0100",
-    client: "Tech Solutions Ltda.",
-    type: "Trabalhista",
-    date: "Há 5 dias",
-    stage: "Recursal"
-  },
-  {
-    id: "3",
-    number: "0003456-34.2023.8.26.0100",
-    client: "João Pereira",
-    type: "Cível",
-    date: "Há 1 semana",
-    stage: "Execução"
-  },
-  {
-    id: "4",
-    number: "0004567-45.2023.8.26.0100",
-    client: "Construções Rápidas S.A.",
-    type: "Administrativo",
-    date: "Há 2 semanas",
-    stage: "Conhecimento"
-  }
-];
+// Interface para tipagem dos processos
+interface Case {
+  id: string;
+  number: string;
+  client: string;
+  type: string;
+  date: string;
+  stage: string;
+  created_at?: string;
+}
 
 const getStageColor = (stage: string) => {
   switch (stage) {
@@ -59,21 +36,83 @@ const getStageColor = (stage: string) => {
 };
 
 const RecentCases: React.FC = () => {
-  const [cases, setCases] = useState(initialCasesData);
-  const [filteredCases, setFilteredCases] = useState(initialCasesData);
+  const [cases, setCases] = useState<Case[]>([]);
+  const [filteredCases, setFilteredCases] = useState<Case[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [showFilterDialog, setShowFilterDialog] = useState(false);
-  const [newCase, setNewCase] = useState({
-    number: "",
-    client: "",
-    type: "Cível",
-    stage: "Inicial"
-  });
+  const [isLoading, setIsLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   
   const { toast } = useToast();
   const { openDialog } = useContext(CreateEntityContext);
+  const { user } = useAuth();
+
+  // Carregar processos ao iniciar o componente
+  useEffect(() => {
+    fetchCases();
+  }, [user]);
+
+  // Função para buscar processos no Supabase
+  const fetchCases = async () => {
+    if (!user) return;
+    
+    try {
+      setIsLoading(true);
+      let query = supabase.from('processos').select('*');
+      
+      if (!user.isAdmin) {
+        // Filtra por advogado_id se não for admin
+        query = query.eq('advogado_id', user.id);
+      }
+      
+      // Limita aos processos mais recentes
+      const { data, error } = await query.order('created_at', { ascending: false }).limit(5);
+      
+      if (error) {
+        console.error("Erro ao buscar processos:", error);
+        toast({
+          title: "Erro ao carregar processos",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (data) {
+        const mappedCases: Case[] = data.map(proc => ({
+          id: proc.id,
+          number: proc.numero,
+          client: proc.cliente,
+          type: proc.tipo,
+          date: proc.created_at ? `Há ${getRelativeTime(new Date(proc.created_at))}` : "Recente",
+          stage: proc.fase || "Inicial",
+          created_at: proc.created_at
+        }));
+        
+        setCases(mappedCases);
+        setFilteredCases(mappedCases);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar processos:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Função para calcular tempo relativo
+  const getRelativeTime = (date: Date) => {
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "hoje";
+    if (diffDays === 1) return "1 dia";
+    if (diffDays < 7) return `${diffDays} dias`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} semana(s)`;
+    if (diffDays < 365) return `${Math.floor(diffDays / 30)} mês(es)`;
+    return `${Math.floor(diffDays / 365)} ano(s)`;
+  };
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
@@ -87,36 +126,6 @@ const RecentCases: React.FC = () => {
       item.client.toLowerCase().includes(term.toLowerCase())
     );
     setFilteredCases(filtered);
-  };
-
-  const addNewCase = () => {
-    if (!newCase.number || !newCase.client) {
-      toast({
-        title: "Dados incompletos",
-        description: "Preencha todos os campos obrigatórios.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const newCaseData = {
-      id: (cases.length + 1).toString(),
-      number: newCase.number,
-      client: newCase.client,
-      type: newCase.type,
-      date: "Agora",
-      stage: newCase.stage
-    };
-
-    const updatedCases = [newCaseData, ...cases];
-    setCases(updatedCases);
-    setFilteredCases(updatedCases);
-    setNewCase({ number: "", client: "", type: "Cível", stage: "Inicial" });
-    
-    toast({
-      title: "Processo adicionado",
-      description: `Processo ${newCase.number} foi adicionado com sucesso.`
-    });
   };
 
   const applyFilter = (filter: string) => {
@@ -139,12 +148,21 @@ const RecentCases: React.FC = () => {
   };
 
   const handleNewCase = () => {
+    if (!user) {
+      toast({
+        title: "Usuário não autenticado",
+        description: "Você precisa estar logado para adicionar processos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     openDialog({
       title: "Adicionar Novo Processo",
       description: "Preencha os campos abaixo para adicionar um novo processo.",
       fields: [
-        { id: "number", label: "Número", placeholder: "0000000-00.0000.0.00.0000" },
-        { id: "client", label: "Cliente", placeholder: "Nome do cliente" },
+        { id: "number", label: "Número", placeholder: "0000000-00.0000.0.00.0000", required: true },
+        { id: "client", label: "Cliente", placeholder: "Nome do cliente", required: true },
         { 
           id: "type", 
           label: "Tipo", 
@@ -170,7 +188,62 @@ const RecentCases: React.FC = () => {
         },
       ],
       submitLabel: "Adicionar Processo",
-      entityType: "case"
+      entityType: "case",
+      onSubmit: async (formData) => {
+        try {
+          setIsLoading(true);
+          
+          // Preparar dados para o Supabase
+          const caseData = {
+            advogado_id: user.id,
+            numero: formData.number,
+            cliente: formData.client,
+            tipo: formData.type || "Cível",
+            fase: formData.stage || "Inicial"
+          };
+          
+          // Inserir no Supabase
+          const { data, error } = await supabase
+            .from('processos')
+            .insert(caseData)
+            .select()
+            .single();
+          
+          if (error) throw error;
+          
+          if (data) {
+            // Criar objeto de processo no formato da aplicação
+            const newCase: Case = {
+              id: data.id,
+              number: data.numero,
+              client: data.cliente,
+              type: data.tipo,
+              date: "Agora",
+              stage: data.fase,
+            };
+            
+            // Adicionar o novo processo ao início da lista
+            const updatedCases = [newCase, ...cases.slice(0, cases.length > 4 ? 4 : cases.length)];
+            setCases(updatedCases);
+            setFilteredCases(updatedCases);
+            
+            // Exibir mensagem de sucesso
+            toast({
+              title: "Processo adicionado",
+              description: `O processo ${formData.number} foi adicionado com sucesso`,
+            });
+          }
+        } catch (error: any) {
+          console.error("Erro ao adicionar processo:", error);
+          toast({
+            title: "Erro ao adicionar processo",
+            description: error.message || "Não foi possível adicionar o processo",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      }
     });
   };
 
@@ -241,117 +314,80 @@ const RecentCases: React.FC = () => {
         </div>
         
         <div className="p-2">
-          {filteredCases.length > 0 ? (
+          {isLoading ? (
+            <div className="text-center py-4 text-muted-foreground">
+              Carregando processos...
+            </div>
+          ) : filteredCases.length > 0 ? (
             filteredCases.map((item) => (
               <div 
                 key={item.id} 
                 className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-md transition-colors cursor-pointer"
               >
                 <div className="flex flex-col">
-                  <span className="font-medium">{item.number}</span>
-                  <span className="text-xs text-muted-foreground">{item.client} • {item.type}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-muted-foreground">{item.date}</span>
-                  <span className={cn(
-                    "text-xs px-2 py-0.5 rounded-full border",
-                    getStageColor(item.stage)
-                  )}>
-                    {item.stage}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-medium">{item.number}</h4>
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${getStageColor(item.stage)}`}>
+                      {item.stage}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{item.client}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="px-2 py-0.5 rounded-full bg-muted text-xs">
+                      {item.type}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {item.date}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-center py-6 text-muted-foreground">
-              <p>Nenhum processo encontrado</p>
+            <div className="text-center py-4 text-muted-foreground">
+              Nenhum processo encontrado
             </div>
           )}
-        </div>
-        
-        <div className="p-3 border-t border-border">
-          <Button 
-            variant="link" 
-            className="text-sm text-primary hover:text-primary/80 transition-colors w-full text-center"
-            onClick={() => {
-              toast({
-                title: "Redirecionando",
-                description: "Você seria redirecionado para a página de todos os processos."
-              });
-            }}
-          >
-            Ver todos os processos
-          </Button>
         </div>
       </div>
 
       <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Filtrar Processos</DialogTitle>
             <DialogDescription>
-              Selecione os critérios para filtrar a lista de processos.
+              Selecione os filtros que deseja aplicar à lista de processos.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Tipo</p>
-              <div className="flex flex-wrap gap-2">
+          <div className="grid gap-4 py-4">
+            <h4 className="text-sm font-medium">Por Fase</h4>
+            <div className="flex flex-wrap gap-2">
+              {["Inicial", "Conhecimento", "Recursal", "Execução"].map((fase) => (
                 <Button 
-                  variant={activeFilter === "Cível" ? "default" : "outline"} 
+                  key={fase}
+                  variant={activeFilter === fase ? "default" : "outline"}
                   size="sm"
-                  onClick={() => applyFilter("Cível")}
+                  onClick={() => applyFilter(fase)}
+                  className="text-xs h-8"
                 >
-                  Cível
+                  {fase}
                 </Button>
-                <Button 
-                  variant={activeFilter === "Trabalhista" ? "default" : "outline"} 
-                  size="sm"
-                  onClick={() => applyFilter("Trabalhista")}
-                >
-                  Trabalhista
-                </Button>
-                <Button 
-                  variant={activeFilter === "Administrativo" ? "default" : "outline"} 
-                  size="sm"
-                  onClick={() => applyFilter("Administrativo")}
-                >
-                  Administrativo
-                </Button>
-              </div>
+              ))}
             </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Fase</p>
-              <div className="flex flex-wrap gap-2">
+            
+            <h4 className="text-sm font-medium">Por Tipo</h4>
+            <div className="flex flex-wrap gap-2">
+              {["Cível", "Trabalhista", "Tributário", "Criminal", "Administrativo"].map((tipo) => (
                 <Button 
-                  variant={activeFilter === "Inicial" ? "default" : "outline"} 
+                  key={tipo}
+                  variant={activeFilter === tipo ? "default" : "outline"}
                   size="sm"
-                  onClick={() => applyFilter("Inicial")}
+                  onClick={() => applyFilter(tipo)}
+                  className="text-xs h-8"
                 >
-                  Inicial
+                  {tipo}
                 </Button>
-                <Button 
-                  variant={activeFilter === "Conhecimento" ? "default" : "outline"} 
-                  size="sm"
-                  onClick={() => applyFilter("Conhecimento")}
-                >
-                  Conhecimento
-                </Button>
-                <Button 
-                  variant={activeFilter === "Recursal" ? "default" : "outline"} 
-                  size="sm"
-                  onClick={() => applyFilter("Recursal")}
-                >
-                  Recursal
-                </Button>
-                <Button 
-                  variant={activeFilter === "Execução" ? "default" : "outline"} 
-                  size="sm"
-                  onClick={() => applyFilter("Execução")}
-                >
-                  Execução
-                </Button>
-              </div>
+              ))}
             </div>
           </div>
           <DialogFooter>
@@ -365,7 +401,7 @@ const RecentCases: React.FC = () => {
             >
               Limpar Filtros
             </Button>
-            <Button onClick={() => setShowFilterDialog(false)}>Aplicar</Button>
+            <Button onClick={() => setShowFilterDialog(false)}>Fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

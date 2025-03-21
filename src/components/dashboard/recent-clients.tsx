@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -17,36 +17,41 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Plus, Search, Filter, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth/auth-provider";
 import { supabase } from "@/integrations/supabase/client";
+import { CreateEntityContext } from "@/layouts/main-layout";
+import { cn } from "@/lib/utils";
 
 interface Client {
   id: string;
   name: string;
+  type: string;
   email: string;
   phone: string;
-  status: "active" | "pending" | "inactive";
+  date: string;
+  created_at?: string;
 }
 
-const RecentClients = () => {
+const RecentClients: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [filteredClients, setFilteredClients] = useState<Client[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+  const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [newClientData, setNewClientData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-  });
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  
   const { toast } = useToast();
+  const { openDialog } = useContext(CreateEntityContext);
   const { user } = useAuth();
 
   useEffect(() => {
-    fetchRecentClients();
+    fetchClients();
   }, [user]);
 
-  const fetchRecentClients = async () => {
+  const fetchClients = async () => {
     if (!user) return;
     
     try {
@@ -58,11 +63,11 @@ const RecentClients = () => {
         query = query.eq('advogado_id', user.id);
       }
       
-      // Limita a 5 clientes mais recentes
+      // Limita aos clientes mais recentes
       const { data, error } = await query.order('created_at', { ascending: false }).limit(5);
       
       if (error) {
-        console.error("Erro ao buscar clientes recentes:", error);
+        console.error("Erro ao buscar clientes:", error);
         toast({
           title: "Erro ao carregar clientes",
           description: error.message,
@@ -72,14 +77,18 @@ const RecentClients = () => {
       }
       
       if (data) {
-        const mappedClients = data.map(client => ({
+        const mappedClients: Client[] = data.map(client => ({
           id: client.id,
           name: client.nome,
-          email: client.email || "",
-          phone: client.telefone || "",
-          status: client.status || "active" as "active" | "pending" | "inactive"
+          type: client.tipo,
+          email: client.email,
+          phone: client.telefone,
+          date: client.created_at ? `Há ${getRelativeTime(new Date(client.created_at))}` : "Recente",
+          created_at: client.created_at
         }));
+        
         setClients(mappedClients);
+        setFilteredClients(mappedClients);
       }
     } catch (error) {
       console.error("Erro ao buscar clientes:", error);
@@ -88,7 +97,53 @@ const RecentClients = () => {
     }
   };
 
-  const addNewClient = async () => {
+  const getRelativeTime = (date: Date) => {
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "hoje";
+    if (diffDays === 1) return "1 dia";
+    if (diffDays < 7) return `${diffDays} dias`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} semana(s)`;
+    if (diffDays < 365) return `${Math.floor(diffDays / 30)} mês(es)`;
+    return `${Math.floor(diffDays / 365)} ano(s)`;
+  };
+
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    if (!term.trim()) {
+      setFilteredClients(clients);
+      return;
+    }
+    
+    const filtered = clients.filter(item => 
+      item.name.toLowerCase().includes(term.toLowerCase()) || 
+      item.email.toLowerCase().includes(term.toLowerCase())
+    );
+    setFilteredClients(filtered);
+  };
+
+  const applyFilter = (filter: string) => {
+    if (activeFilter === filter) {
+      setActiveFilter(null);
+      setFilteredClients(clients);
+    } else {
+      setActiveFilter(filter);
+      const filtered = clients.filter(item => 
+        filter === "all" ? true : item.type === filter
+      );
+      setFilteredClients(filtered);
+    }
+    setShowFilterDialog(false);
+    
+    toast({
+      title: "Filtro aplicado",
+      description: `Lista filtrada com sucesso.`
+    });
+  };
+
+  const handleNewClient = () => {
     if (!user) {
       toast({
         title: "Usuário não autenticado",
@@ -97,73 +152,85 @@ const RecentClients = () => {
       });
       return;
     }
-    
-    if (!newClientData.name.trim()) {
-      toast({
-        title: "Nome obrigatório",
-        description: "Por favor, informe o nome do cliente.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
-      
-      // Preparar dados para o Supabase
-      const clientData = {
-        advogado_id: user.id,
-        nome: newClientData.name,
-        email: newClientData.email || null,
-        telefone: newClientData.phone || null,
-        status: "active"
-      };
-      
-      // Inserir no Supabase
-      const { data, error } = await supabase
-        .from('clientes')
-        .insert(clientData)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      if (data) {
-        // Adicionar o novo cliente à lista local
-        const newClient: Client = {
-          id: data.id,
-          name: data.nome,
-          email: data.email || "",
-          phone: data.telefone || "",
-          status: "active",
-        };
-        
-        setClients([newClient, ...clients.slice(0, 4)]); // Mantém apenas os 5 mais recentes
-        setIsDialogOpen(false);
-        setNewClientData({ name: "", email: "", phone: "" });
-        
-        toast({
-          title: "Cliente adicionado",
-          description: `${newClientData.name} foi adicionado com sucesso à sua lista de clientes.`,
-        });
-      }
-    } catch (error: any) {
-      console.error("Erro ao adicionar cliente:", error);
-      toast({
-        title: "Erro ao adicionar cliente",
-        description: error.message || "Não foi possível adicionar o cliente",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewClientData({
-      ...newClientData,
-      [name]: value,
+    openDialog({
+      title: "Cadastrar Novo Cliente",
+      description: "Preencha os campos abaixo para adicionar um novo cliente.",
+      fields: [
+        { id: "name", label: "Nome", placeholder: "Nome completo", required: true },
+        { id: "email", label: "E-mail", placeholder: "email@exemplo.com", required: true },
+        { id: "phone", label: "Telefone", placeholder: "(00) 00000-0000" },
+        { 
+          id: "type", 
+          label: "Tipo", 
+          placeholder: "Selecione o tipo",
+          options: [
+            { value: "Pessoa Física", label: "Pessoa Física" },
+            { value: "Pessoa Jurídica", label: "Pessoa Jurídica" }
+          ]
+        },
+        { id: "document", label: "CPF/CNPJ", placeholder: "Somente números" },
+        { id: "address", label: "Endereço", placeholder: "Endereço completo" },
+      ],
+      submitLabel: "Cadastrar Cliente",
+      entityType: "client",
+      onSubmit: async (formData) => {
+        try {
+          setIsLoading(true);
+          
+          // Preparar dados para o Supabase
+          const clientData = {
+            advogado_id: user.id,
+            nome: formData.name,
+            email: formData.email,
+            telefone: formData.phone || "",
+            tipo: formData.type || "Pessoa Física",
+            documento: formData.document || "",
+            endereco: formData.address || ""
+          };
+          
+          // Inserir no Supabase
+          const { data, error } = await supabase
+            .from('clientes')
+            .insert(clientData)
+            .select()
+            .single();
+          
+          if (error) throw error;
+          
+          if (data) {
+            // Criar objeto de cliente no formato da aplicação
+            const newClient: Client = {
+              id: data.id,
+              name: data.nome,
+              type: data.tipo,
+              email: data.email,
+              phone: data.telefone,
+              date: "Agora"
+            };
+            
+            // Adicionar o novo cliente ao início da lista
+            const updatedClients = [newClient, ...clients.slice(0, clients.length > 4 ? 4 : clients.length)];
+            setClients(updatedClients);
+            setFilteredClients(updatedClients);
+            
+            // Exibir mensagem de sucesso
+            toast({
+              title: "Cliente cadastrado",
+              description: `${formData.name} foi adicionado com sucesso à sua lista de clientes`,
+            });
+          }
+        } catch (error: any) {
+          console.error("Erro ao cadastrar cliente:", error);
+          toast({
+            title: "Erro ao cadastrar cliente",
+            description: error.message || "Não foi possível adicionar o cliente",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      }
     });
   };
 
@@ -171,18 +238,69 @@ const RecentClients = () => {
     <Card className="col-span-full xl:col-span-2">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-xl">Clientes Recentes</CardTitle>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="h-8 gap-1 recent-clients-add-button" 
-          onClick={() => setIsDialogOpen(true)}
-        >
-          <PlusCircle className="h-3.5 w-3.5" />
-          <span>Adicionar</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          {showSearch ? (
+            <div className="flex items-center bg-muted rounded-md">
+              <Input
+                type="text"
+                placeholder="Buscar cliente..."
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="h-8 text-xs border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8" 
+                onClick={() => {
+                  setShowSearch(false);
+                  setSearchTerm("");
+                  setFilteredClients(clients);
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8" 
+                onClick={() => setShowSearch(true)}
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className={cn(
+                  "h-8 w-8",
+                  activeFilter && "text-primary bg-primary/10"
+                )}
+                onClick={() => setShowFilterDialog(true)}
+              >
+                <Filter className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8" 
+                onClick={handleNewClient}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </>
+          )}
+          <span className="text-xs text-muted-foreground">Total: {filteredClients.length}</span>
+        </div>
       </CardHeader>
       <CardContent>
-        {clients.length > 0 ? (
+        {isLoading ? (
+          <div className="text-center py-4 text-muted-foreground">
+            Carregando clientes...
+          </div>
+        ) : filteredClients.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow>
@@ -193,24 +311,18 @@ const RecentClients = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clients.map((client) => (
+              {filteredClients.map((client) => (
                 <TableRow key={client.id}>
                   <TableCell className="font-medium">{client.name}</TableCell>
                   <TableCell>{client.email}</TableCell>
                   <TableCell>{client.phone}</TableCell>
                   <TableCell>
                     <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      client.status === "active" 
+                      client.type === "Pessoa Física" 
                         ? "bg-green-100 text-green-800" 
-                        : client.status === "pending" 
-                        ? "bg-yellow-100 text-yellow-800" 
                         : "bg-gray-100 text-gray-800"
                     }`}>
-                      {client.status === "active" 
-                        ? "Ativo" 
-                        : client.status === "pending" 
-                        ? "Pendente" 
-                        : "Inativo"}
+                      {client.type}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -219,57 +331,47 @@ const RecentClients = () => {
           </Table>
         ) : (
           <div className="text-center py-4 text-muted-foreground">
-            {isLoading ? "Carregando clientes..." : "Nenhum cliente cadastrado ainda."}
+            Nenhum cliente encontrado
           </div>
         )}
       </CardContent>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+      <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Adicionar Novo Cliente</DialogTitle>
+            <DialogTitle>Filtrar Clientes</DialogTitle>
             <DialogDescription>
-              Preencha os dados do cliente para adicionar à sua lista.
+              Selecione os filtros que deseja aplicar à lista de clientes.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Nome *</Label>
-              <Input 
-                id="name" 
-                name="name" 
-                value={newClientData.name} 
-                onChange={handleInputChange} 
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email" 
-                name="email" 
-                type="email" 
-                value={newClientData.email} 
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="phone">Telefone</Label>
-              <Input 
-                id="phone" 
-                name="phone" 
-                value={newClientData.phone} 
-                onChange={handleInputChange}
-              />
+            <h4 className="text-sm font-medium">Por Tipo</h4>
+            <div className="flex flex-wrap gap-2">
+              {["Pessoa Física", "Pessoa Jurídica"].map((tipo) => (
+                <Button 
+                  key={tipo}
+                  variant={activeFilter === tipo ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => applyFilter(tipo)}
+                  className="text-xs h-8"
+                >
+                  {tipo}
+                </Button>
+              ))}
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isLoading}>
-              Cancelar
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setActiveFilter(null);
+                setFilteredClients(clients);
+                setShowFilterDialog(false);
+              }}
+            >
+              Limpar Filtros
             </Button>
-            <Button type="submit" onClick={addNewClient} disabled={isLoading}>
-              {isLoading ? "Adicionando..." : "Adicionar"}
-            </Button>
+            <Button onClick={() => setShowFilterDialog(false)}>Fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,54 +1,35 @@
-
-import React, { useState } from "react";
-import { Calendar, Check, Plus, Search, Filter, X, Clock, Circle } from "lucide-react";
+import React, { useState, useContext, useEffect } from "react";
+import { Calendar, Plus, Search, Filter, X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { CreateEntityContext } from "@/layouts/main-layout";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/auth/auth-provider";
+import { format, addDays, isToday, isTomorrow, parseISO, formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
-// Dados de exemplo para tarefas próximas
-const initialTasksData = [
-  {
-    id: "1",
-    title: "Audiência - Maria Silva",
-    description: "Processo nº 0001234-12.2023.8.26.0100",
-    date: "Hoje, 14:30",
-    priority: "alta",
-    completed: false
-  },
-  {
-    id: "2",
-    title: "Prazo - Contestação",
-    description: "Processo nº 0002345-23.2023.8.26.0100",
-    date: "Amanhã, 23:59",
-    priority: "alta",
-    completed: false
-  },
-  {
-    id: "3",
-    title: "Reunião - João Pereira",
-    description: "Discussão de estratégia para o caso",
-    date: "28/07/2023, 10:00",
-    priority: "média",
-    completed: false
-  },
-  {
-    id: "4",
-    title: "Revisão - Contrato Tech Solutions",
-    description: "Análise final de contrato de prestação de serviços",
-    date: "30/07/2023, 18:00",
-    priority: "baixa",
-    completed: false
-  }
-];
+// Interface para tipagem das tarefas
+interface Task {
+  id: string;
+  title: string;
+  priority: "alta" | "média" | "baixa";
+  deadline: string;
+  case?: string;
+  client?: string;
+  completed: boolean;
+  display_date?: string;
+  created_at?: string;
+}
 
 const getPriorityColor = (priority: string) => {
   switch (priority) {
     case "alta":
       return "bg-red-100 text-red-800 border-red-200";
     case "média":
-      return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      return "bg-amber-100 text-amber-800 border-amber-200";
     case "baixa":
       return "bg-green-100 text-green-800 border-green-200";
     default:
@@ -57,22 +38,88 @@ const getPriorityColor = (priority: string) => {
 };
 
 const UpcomingTasks: React.FC = () => {
-  const [tasks, setTasks] = useState(initialTasksData);
-  const [filteredTasks, setFilteredTasks] = useState(initialTasksData);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
-  const [showNewTaskDialog, setShowNewTaskDialog] = useState(false);
   const [showFilterDialog, setShowFilterDialog] = useState(false);
-  const [newTask, setNewTask] = useState({
-    title: "",
-    description: "",
-    date: "",
-    time: "",
-    priority: "média"
-  });
+  const [isLoading, setIsLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   
   const { toast } = useToast();
+  const { openDialog } = useContext(CreateEntityContext);
+  const { user } = useAuth();
+
+  // Carregar tarefas ao iniciar o componente
+  useEffect(() => {
+    fetchTasks();
+  }, [user]);
+
+  // Função para buscar tarefas no Supabase
+  const fetchTasks = async () => {
+    if (!user) return;
+    
+    try {
+      setIsLoading(true);
+      let query = supabase.from('tarefas').select('*');
+      
+      if (!user.isAdmin) {
+        // Filtra por advogado_id se não for admin
+        query = query.eq('advogado_id', user.id);
+      }
+      
+      // Limita às tarefas próximas, não concluídas
+      const { data, error } = await query
+        .eq('completed', false)
+        .order('deadline', { ascending: true })
+        .limit(5);
+      
+      if (error) {
+        console.error("Erro ao buscar tarefas:", error);
+        toast({
+          title: "Erro ao carregar tarefas",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (data) {
+        const mappedTasks: Task[] = data.map(task => {
+          // Formatar data para exibição
+          let deadline = task.deadline ? parseISO(task.deadline) : new Date();
+          let displayDate = "";
+          
+          if (isToday(deadline)) {
+            displayDate = "Hoje";
+          } else if (isTomorrow(deadline)) {
+            displayDate = "Amanhã";
+          } else {
+            displayDate = format(deadline, "dd/MM/yyyy", { locale: ptBR });
+          }
+          
+          return {
+            id: task.id,
+            title: task.titulo,
+            priority: task.prioridade || "média",
+            deadline: task.deadline,
+            case: task.processo,
+            client: task.cliente,
+            completed: !!task.completed,
+            display_date: displayDate,
+            created_at: task.created_at
+          };
+        });
+        
+        setTasks(mappedTasks);
+        setFilteredTasks(mappedTasks);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar tarefas:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
@@ -81,73 +128,12 @@ const UpcomingTasks: React.FC = () => {
       return;
     }
     
-    const filtered = tasks.filter(task => 
-      task.title.toLowerCase().includes(term.toLowerCase()) || 
-      task.description.toLowerCase().includes(term.toLowerCase())
+    const filtered = tasks.filter(item => 
+      item.title.toLowerCase().includes(term.toLowerCase()) || 
+      (item.client && item.client.toLowerCase().includes(term.toLowerCase())) ||
+      (item.case && item.case.toLowerCase().includes(term.toLowerCase()))
     );
     setFilteredTasks(filtered);
-  };
-
-  const toggleTaskCompletion = (id: string) => {
-    const updatedTasks = tasks.map(task => 
-      task.id === id ? { ...task, completed: !task.completed } : task
-    );
-    setTasks(updatedTasks);
-    setFilteredTasks(
-      searchTerm 
-        ? updatedTasks.filter(task => 
-            task.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-            task.description.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-        : updatedTasks
-    );
-    
-    const task = tasks.find(t => t.id === id);
-    toast({
-      title: task?.completed ? "Tarefa reaberta" : "Tarefa concluída",
-      description: `A tarefa "${task?.title}" foi ${task?.completed ? "reaberta" : "marcada como concluída"}.`
-    });
-  };
-
-  const addNewTask = () => {
-    if (!newTask.title || !newTask.date) {
-      toast({
-        title: "Dados incompletos",
-        description: "Preencha todos os campos obrigatórios.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const formattedDate = newTask.time 
-      ? `${newTask.date}, ${newTask.time}` 
-      : newTask.date;
-
-    const newTaskData = {
-      id: (tasks.length + 1).toString(),
-      title: newTask.title,
-      description: newTask.description,
-      date: formattedDate,
-      priority: newTask.priority,
-      completed: false
-    };
-
-    const updatedTasks = [newTaskData, ...tasks];
-    setTasks(updatedTasks);
-    setFilteredTasks(updatedTasks);
-    setNewTask({
-      title: "",
-      description: "",
-      date: "",
-      time: "",
-      priority: "média"
-    });
-    setShowNewTaskDialog(false);
-    
-    toast({
-      title: "Tarefa adicionada",
-      description: `A tarefa "${newTask.title}" foi adicionada com sucesso.`
-    });
   };
 
   const applyFilter = (filter: string) => {
@@ -156,16 +142,9 @@ const UpcomingTasks: React.FC = () => {
       setFilteredTasks(tasks);
     } else {
       setActiveFilter(filter);
-      let filtered;
-      
-      if (filter === "completed") {
-        filtered = tasks.filter(task => task.completed);
-      } else if (filter === "pending") {
-        filtered = tasks.filter(task => !task.completed);
-      } else {
-        filtered = tasks.filter(task => task.priority === filter);
-      }
-      
+      const filtered = tasks.filter(item => 
+        filter === "all" ? true : item.priority === filter
+      );
       setFilteredTasks(filtered);
     }
     setShowFilterDialog(false);
@@ -176,13 +155,163 @@ const UpcomingTasks: React.FC = () => {
     });
   };
 
+  const toggleTaskCompletion = async (taskId: string, completed: boolean) => {
+    try {
+      setIsLoading(true);
+      
+      // Atualizar no Supabase
+      const { error } = await supabase
+        .from('tarefas')
+        .update({ completed: !completed })
+        .eq('id', taskId);
+      
+      if (error) throw error;
+      
+      // Atualizar estado local
+      const updatedTasks = tasks.map(task => 
+        task.id === taskId ? { ...task, completed: !completed } : task
+      );
+      
+      const filteredUpdatedTasks = completed 
+        ? updatedTasks 
+        : updatedTasks.filter(task => !task.completed);
+      
+      setTasks(updatedTasks);
+      setFilteredTasks(filteredUpdatedTasks);
+      
+      toast({
+        title: completed ? "Tarefa reaberta" : "Tarefa concluída",
+        description: `A tarefa foi marcada como ${completed ? "não concluída" : "concluída"}.`
+      });
+    } catch (error: any) {
+      console.error("Erro ao atualizar tarefa:", error);
+      toast({
+        title: "Erro ao atualizar tarefa",
+        description: error.message || "Não foi possível atualizar o status da tarefa",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleNewTask = () => {
+    if (!user) {
+      toast({
+        title: "Usuário não autenticado",
+        description: "Você precisa estar logado para adicionar tarefas.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    openDialog({
+      title: "Adicionar Nova Tarefa",
+      description: "Preencha os campos abaixo para adicionar uma nova tarefa.",
+      fields: [
+        { id: "title", label: "Título", placeholder: "Descrição da tarefa", required: true },
+        { 
+          id: "priority", 
+          label: "Prioridade", 
+          placeholder: "Selecione a prioridade",
+          options: [
+            { value: "alta", label: "Alta" },
+            { value: "média", label: "Média" },
+            { value: "baixa", label: "Baixa" }
+          ]
+        },
+        { id: "deadline", label: "Prazo", type: "date", required: true },
+        { id: "client", label: "Cliente", placeholder: "Nome do cliente" },
+        { id: "case", label: "Processo", placeholder: "Número do processo" },
+      ],
+      submitLabel: "Adicionar Tarefa",
+      entityType: "task",
+      onSubmit: async (formData) => {
+        try {
+          setIsLoading(true);
+          
+          // Verificar se data é válida
+          if (!formData.deadline) {
+            throw new Error("É necessário informar um prazo válido");
+          }
+          
+          // Preparar dados para o Supabase
+          const taskData = {
+            advogado_id: user.id,
+            titulo: formData.title,
+            prioridade: formData.priority || "média",
+            deadline: formData.deadline,
+            cliente: formData.client || null,
+            processo: formData.case || null,
+            completed: false
+          };
+          
+          // Inserir no Supabase
+          const { data, error } = await supabase
+            .from('tarefas')
+            .insert(taskData)
+            .select()
+            .single();
+          
+          if (error) throw error;
+          
+          if (data) {
+            // Formatar data para exibição
+            let deadline = data.deadline ? parseISO(data.deadline) : new Date();
+            let displayDate = "";
+            
+            if (isToday(deadline)) {
+              displayDate = "Hoje";
+            } else if (isTomorrow(deadline)) {
+              displayDate = "Amanhã";
+            } else {
+              displayDate = format(deadline, "dd/MM/yyyy", { locale: ptBR });
+            }
+            
+            // Criar objeto de tarefa no formato da aplicação
+            const newTask: Task = {
+              id: data.id,
+              title: data.titulo,
+              priority: data.prioridade,
+              deadline: data.deadline,
+              case: data.processo,
+              client: data.cliente,
+              completed: false,
+              display_date: displayDate
+            };
+            
+            // Adicionar a nova tarefa ao início da lista
+            const updatedTasks = [newTask, ...tasks.slice(0, tasks.length > 4 ? 4 : tasks.length)];
+            setTasks(updatedTasks);
+            setFilteredTasks(updatedTasks);
+            
+            // Exibir mensagem de sucesso
+            toast({
+              title: "Tarefa adicionada",
+              description: `A tarefa foi adicionada com sucesso`,
+            });
+          }
+        } catch (error: any) {
+          console.error("Erro ao adicionar tarefa:", error);
+          toast({
+            title: "Erro ao adicionar tarefa",
+            description: error.message || "Não foi possível adicionar a tarefa",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    });
+  };
+
   return (
     <>
       <div className="bg-card rounded-lg border border-border shadow-sm animate-slide-up delay-200">
         <div className="flex items-center justify-between p-4 border-b border-border">
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-primary" />
-            <h3 className="font-medium">Tarefas Próximas</h3>
+            <h3 className="font-medium">Tarefas Pendentes</h3>
           </div>
           <div className="flex items-center gap-2">
             {showSearch ? (
@@ -232,7 +361,7 @@ const UpcomingTasks: React.FC = () => {
                   variant="ghost" 
                   size="icon" 
                   className="h-8 w-8" 
-                  onClick={() => setShowNewTaskDialog(true)}
+                  onClick={handleNewTask}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -243,204 +372,91 @@ const UpcomingTasks: React.FC = () => {
         </div>
         
         <div className="p-2">
-          {filteredTasks.length > 0 ? (
-            filteredTasks.map((task) => (
+          {isLoading ? (
+            <div className="text-center py-4 text-muted-foreground">
+              Carregando tarefas...
+            </div>
+          ) : filteredTasks.length > 0 ? (
+            filteredTasks.map((item) => (
               <div 
-                key={task.id} 
-                className={cn(
-                  "flex items-start justify-between p-3 hover:bg-muted/50 rounded-md transition-colors cursor-pointer",
-                  task.completed && "opacity-70"
-                )}
+                key={item.id} 
+                className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-md transition-colors cursor-pointer"
               >
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5">
-                    <button 
-                      className={cn(
-                        "h-5 w-5 rounded-full border flex items-center justify-center transition-colors",
-                        task.completed 
-                          ? "bg-primary border-primary hover:bg-primary/90 hover:border-primary/90"
-                          : "border-muted-foreground/30 hover:bg-primary/10"
-                      )}
-                      onClick={() => toggleTaskCompletion(task.id)}
-                    >
-                      <Check className={cn(
-                        "h-3 w-3",
-                        task.completed ? "text-white" : "text-transparent hover:text-primary"
-                      )} />
-                    </button>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className={cn(
-                      "font-medium",
-                      task.completed && "line-through text-muted-foreground"
-                    )}>
-                      {task.title}
-                    </span>
-                    <span className={cn(
-                      "text-xs text-muted-foreground",
-                      task.completed && "line-through"
-                    )}>
-                      {task.description}
-                    </span>
-                  </div>
-                </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-muted-foreground">{task.date}</span>
-                  <span className={cn(
-                    "text-xs px-2 py-0.5 rounded-full border",
-                    getPriorityColor(task.priority)
-                  )}>
-                    {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className={cn(
+                      "h-5 w-5 rounded-full p-0 border",
+                      item.completed && "bg-primary border-primary"
+                    )}
+                    onClick={() => toggleTaskCompletion(item.id, item.completed)}
+                  >
+                    {item.completed && <Check className="h-3 w-3 text-white" />}
+                  </Button>
+                  <div className="flex flex-col">
+                    <h4 className={cn(
+                      "text-sm font-medium", 
+                      item.completed && "line-through text-muted-foreground"
+                    )}>
+                      {item.title}
+                    </h4>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`px-2 py-0.5 rounded-full text-xs ${getPriorityColor(item.priority)}`}>
+                        {item.priority === "alta" ? "Alta" : item.priority === "média" ? "Média" : "Baixa"}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {item.display_date}
+                      </span>
+                    </div>
+                    {(item.client || item.case) && (
+                      <div className="flex items-center gap-2 mt-1">
+                        {item.client && (
+                          <span className="text-xs text-muted-foreground">
+                            {item.client}
+                          </span>
+                        )}
+                        {item.case && (
+                          <span className="text-xs text-muted-foreground">
+                            • {item.case}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-center py-6 text-muted-foreground">
-              <p>Nenhuma tarefa encontrada</p>
+            <div className="text-center py-4 text-muted-foreground">
+              Nenhuma tarefa encontrada
             </div>
           )}
         </div>
-        
-        <div className="p-3 border-t border-border">
-          <Button 
-            variant="link" 
-            className="text-sm text-primary hover:text-primary/80 transition-colors w-full text-center"
-            onClick={() => {
-              toast({
-                title: "Redirecionando",
-                description: "Você seria redirecionado para a página de todas as tarefas."
-              });
-            }}
-          >
-            Ver todas as tarefas
-          </Button>
-        </div>
       </div>
 
-      {/* Dialog para nova tarefa */}
-      <Dialog open={showNewTaskDialog} onOpenChange={setShowNewTaskDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Adicionar Nova Tarefa</DialogTitle>
-            <DialogDescription>
-              Preencha os campos abaixo para adicionar uma nova tarefa.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <label htmlFor="title" className="text-sm font-medium">Título</label>
-              <Input
-                id="title"
-                placeholder="Título da tarefa"
-                value={newTask.title}
-                onChange={(e) => setNewTask({...newTask, title: e.target.value})}
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="description" className="text-sm font-medium">Descrição</label>
-              <Input
-                id="description"
-                placeholder="Descrição da tarefa"
-                value={newTask.description}
-                onChange={(e) => setNewTask({...newTask, description: e.target.value})}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="date" className="text-sm font-medium">Data</label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={newTask.date}
-                  onChange={(e) => setNewTask({...newTask, date: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="time" className="text-sm font-medium">Hora</label>
-                <Input
-                  id="time"
-                  type="time"
-                  value={newTask.time}
-                  onChange={(e) => setNewTask({...newTask, time: e.target.value})}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="priority" className="text-sm font-medium">Prioridade</label>
-              <select
-                id="priority"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={newTask.priority}
-                onChange={(e) => setNewTask({...newTask, priority: e.target.value})}
-              >
-                <option value="baixa">Baixa</option>
-                <option value="média">Média</option>
-                <option value="alta">Alta</option>
-              </select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNewTaskDialog(false)}>Cancelar</Button>
-            <Button onClick={addNewTask}>Adicionar Tarefa</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog para filtros */}
       <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Filtrar Tarefas</DialogTitle>
             <DialogDescription>
-              Selecione os critérios para filtrar a lista de tarefas.
+              Selecione os filtros que deseja aplicar à lista de tarefas.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Status</p>
-              <div className="flex flex-wrap gap-2">
+          <div className="grid gap-4 py-4">
+            <h4 className="text-sm font-medium">Por Prioridade</h4>
+            <div className="flex flex-wrap gap-2">
+              {["alta", "média", "baixa"].map((priority) => (
                 <Button 
-                  variant={activeFilter === "completed" ? "default" : "outline"} 
+                  key={priority}
+                  variant={activeFilter === priority ? "default" : "outline"}
                   size="sm"
-                  onClick={() => applyFilter("completed")}
+                  onClick={() => applyFilter(priority)}
+                  className="text-xs h-8"
                 >
-                  Concluídas
+                  {priority === "alta" ? "Alta" : priority === "média" ? "Média" : "Baixa"}
                 </Button>
-                <Button 
-                  variant={activeFilter === "pending" ? "default" : "outline"} 
-                  size="sm"
-                  onClick={() => applyFilter("pending")}
-                >
-                  Pendentes
-                </Button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Prioridade</p>
-              <div className="flex flex-wrap gap-2">
-                <Button 
-                  variant={activeFilter === "alta" ? "default" : "outline"} 
-                  size="sm"
-                  onClick={() => applyFilter("alta")}
-                >
-                  Alta
-                </Button>
-                <Button 
-                  variant={activeFilter === "média" ? "default" : "outline"} 
-                  size="sm"
-                  onClick={() => applyFilter("média")}
-                >
-                  Média
-                </Button>
-                <Button 
-                  variant={activeFilter === "baixa" ? "default" : "outline"} 
-                  size="sm"
-                  onClick={() => applyFilter("baixa")}
-                >
-                  Baixa
-                </Button>
-              </div>
+              ))}
             </div>
           </div>
           <DialogFooter>
@@ -454,7 +470,7 @@ const UpcomingTasks: React.FC = () => {
             >
               Limpar Filtros
             </Button>
-            <Button onClick={() => setShowFilterDialog(false)}>Aplicar</Button>
+            <Button onClick={() => setShowFilterDialog(false)}>Fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
