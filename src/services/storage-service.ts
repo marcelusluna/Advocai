@@ -5,6 +5,7 @@
 
 export const STORAGE_KEYS = {
   USER_DATA: 'user_data',
+  USER_PROFILE_FORM: 'user_profile_form',
   APP_STATE: 'app_state',
   CLIENTS: 'clients_data',
   DOCUMENTS: 'documents_data',

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +22,83 @@ export const useAuthHook = () => {
       }
     } catch (error) {
       console.error("Erro ao atualizar dados do usuário:", error);
+    }
+  };
+
+  // Função para atualizar o perfil do usuário
+  const updateUserProfile = async (profileData: Partial<User>) => {
+    if (!user?.id) {
+      throw new Error("Usuário não autenticado");
+    }
+    
+    try {
+      setIsLoading(true);
+      
+      // Preparar dados para a tabela perfil_advogado
+      const perfilData = {
+        user_id: user.id,
+        nome: profileData.name,
+        email: profileData.email,
+        telefone: profileData.phone,
+        bio: profileData.bio,
+        oab: profileData.oab,
+        updated_at: new Date().toISOString()
+      };
+      
+      // Verificar se já existe um perfil
+      let profileId = user.profileId;
+      
+      if (profileId) {
+        // Atualizar perfil existente
+        const { error } = await supabase
+          .from('perfil_advogado')
+          .update(perfilData)
+          .eq('id', profileId);
+          
+        if (error) throw error;
+      } else {
+        // Criar novo perfil
+        const { data, error } = await supabase
+          .from('perfil_advogado')
+          .insert({
+            ...perfilData,
+            created_at: new Date().toISOString()
+          })
+          .select('id')
+          .single();
+          
+        if (error) throw error;
+        if (data) profileId = data.id;
+      }
+      
+      // Atualizar metadados do usuário no Auth
+      const { error: metadataError } = await supabase.auth.updateUser({
+        data: {
+          name: profileData.name
+        }
+      });
+      
+      if (metadataError) {
+        console.error("Erro ao atualizar metadados:", metadataError);
+        // Continuar mesmo com erro
+      }
+      
+      // Atualizar dados no estado local
+      const updatedUser = {
+        ...user,
+        ...profileData,
+        profileId
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      
+      return;
+    } catch (error) {
+      console.error("Erro ao atualizar perfil:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -376,5 +452,6 @@ export const useAuthHook = () => {
     signup,
     logout,
     refreshUserData,
+    updateUserProfile,
   };
 };
