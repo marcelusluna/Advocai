@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Bell, Calendar, CircleAlert, X, Check, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -129,6 +128,22 @@ const NotificationsPanel: React.FC = () => {
 
   const naoLidas = notificacoes.filter(n => !n.lida).length;
 
+  const verTodasNotificacoes = () => {
+    toast({
+      title: "Visualizar notificações",
+      description: "Redirecionando para a página de todas as notificações.",
+    });
+    // Aqui seria implementada a navegação para a página completa de notificações
+  };
+
+  const verTodosCompromissos = () => {
+    toast({
+      title: "Visualizar compromissos",
+      description: "Redirecionando para a página de todos os compromissos.",
+    });
+    // Aqui seria implementada a navegação para a página completa de compromissos
+  };
+
   return (
     <Card className="animate-fade-in delay-200 w-full">
       <CardHeader className="pb-3">
@@ -152,7 +167,7 @@ const NotificationsPanel: React.FC = () => {
           </TabsList>
           
           <TabsContent value="notificacoes" className="mt-0 px-4">
-            <div className="space-y-3 max-h-[280px] overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-[280px] overflow-container pr-1">
               {notificacoes.length > 0 ? (
                 notificacoes.map((notif) => (
                   <div 
@@ -215,12 +230,18 @@ const NotificationsPanel: React.FC = () => {
               )}
             </div>
             <div className="mt-3 text-center py-2 px-1">
-              <Button variant="outline" className="w-full">Ver todas as notificações</Button>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={verTodasNotificacoes}
+              >
+                Ver todas as notificações
+              </Button>
             </div>
           </TabsContent>
           
           <TabsContent value="compromissos" className="mt-0 px-4">
-            <div className="space-y-3 max-h-[280px] overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-[280px] overflow-container pr-1">
               {compromissos.length > 0 ? (
                 compromissos.map((comp) => (
                   <div 
@@ -260,7 +281,13 @@ const NotificationsPanel: React.FC = () => {
               )}
             </div>
             <div className="mt-3 text-center py-2 px-1">
-              <Button variant="outline" className="w-full">Ver todos os compromissos</Button>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={verTodosCompromissos}
+              >
+                Ver todos os compromissos
+              </Button>
             </div>
           </TabsContent>
         </Tabs>

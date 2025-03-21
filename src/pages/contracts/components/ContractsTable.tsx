@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,9 +6,36 @@ import { Button } from "@/components/ui/button";
 import { Search, Eye, Edit, Download, AlertTriangle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useContractsContext, getStatusColor } from "../context/ContractsContext";
+import { useToast } from "@/components/ui/use-toast";
 
 const ContractsTable: React.FC = () => {
   const { filteredContracts, searchTerm, handleSearch } = useContractsContext();
+  const [filteredContractsState, setFilteredContractsState] = useState(filteredContracts);
+  const { toast } = useToast();
+
+  const handleViewContract = (id: string) => {
+    toast({
+      title: "Visualizando contrato",
+      description: "Abrindo visualização do contrato.",
+    });
+    // Aqui seria implementada a navegação para a página de visualização
+  };
+
+  const handleEditContract = (id: string) => {
+    toast({
+      title: "Editando contrato",
+      description: "Abrindo editor de contrato.",
+    });
+    // Aqui seria implementada a navegação para a página de edição
+  };
+
+  const handleDownloadContract = (id: string) => {
+    toast({
+      title: "Download iniciado",
+      description: "O download do contrato foi iniciado.",
+    });
+    // Aqui seria implementada a lógica de download
+  };
 
   return (
     <Card className="mb-6">
@@ -82,13 +108,28 @@ const ContractsTable: React.FC = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" title="Visualizar">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            title="Visualizar"
+                            onClick={() => handleViewContract(contract.id)}
+                          >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" title="Editar">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            title="Editar"
+                            onClick={() => handleEditContract(contract.id)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" title="Download">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            title="Download"
+                            onClick={() => handleDownloadContract(contract.id)}
+                          >
                             <Download className="h-4 w-4" />
                           </Button>
                         </div>

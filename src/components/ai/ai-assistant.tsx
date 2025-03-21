@@ -22,7 +22,7 @@ const AiAssistant: React.FC = () => {
     setMessages([
       {
         role: "assistant",
-        content: `Olá${user?.name ? ', ' + user.name : ''}! Sou o assistente virtual do AdvocCase. Como posso ajudar você hoje?`,
+        content: `Oi${user?.name ? ', ' + user.name : ''}! Sou o AdvoBot, assistente virtual do Advoc.AI. Como posso te ajudar?`,
         timestamp: new Date()
       }
     ]);
@@ -113,7 +113,7 @@ const AiAssistant: React.FC = () => {
         <div className="flex items-center justify-between p-3 border-b border-border">
           <div className="flex items-center gap-2">
             <Bot className="h-5 w-5 text-primary" />
-            <h3 className="font-medium">Assistente AdvocCase</h3>
+            <h3 className="font-medium">AdvoBot</h3>
           </div>
           <Button variant="ghost" size="icon" onClick={toggleAssistant}>
             <X className="h-4 w-4" />

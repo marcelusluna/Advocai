@@ -1,4 +1,3 @@
-
 import React from "react";
 import MainLayout from "@/layouts/main-layout";
 import Container from "@/components/ui/container";
@@ -229,7 +228,7 @@ const Office = () => {
                     </TooltipProvider>
                   </div>
                   
-                  <div className="space-y-4 max-h-[400px] overflow-y-auto">
+                  <div className="space-y-4 max-h-[400px] overflow-container">
                     {["João da Silva", "Maria Oliveira", "Carlos Santos", "Ana Ferreira", "Paulo Mendes"].map((member, index) => (
                       <Card key={index} className="overflow-hidden">
                         <div className="p-4 flex items-center justify-between">

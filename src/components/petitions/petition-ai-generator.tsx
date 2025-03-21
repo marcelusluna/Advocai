@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -262,7 +261,7 @@ const PetitionAIGenerator: React.FC = () => {
             <Textarea
               value={generatedPetition}
               onChange={(e) => setGeneratedPetition(e.target.value)}
-              className="font-mono text-sm min-h-[500px]"
+              className="font-mono text-sm min-h-[500px] overflow-container"
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-[500px] bg-muted/30 rounded-md border border-border">
@@ -284,7 +283,16 @@ const PetitionAIGenerator: React.FC = () => {
                 <Copy className="mr-2 h-4 w-4" />
                 Copiar
               </Button>
-              <Button variant="outline">
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  toast({
+                    title: "Exportando PDF",
+                    description: "A petição está sendo exportada para PDF.",
+                  });
+                  // Aqui seria implementada a lógica real de exportação para PDF
+                }}
+              >
                 <Download className="mr-2 h-4 w-4" />
                 Exportar PDF
               </Button>

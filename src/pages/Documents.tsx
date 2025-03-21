@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import MainLayout from "@/layouts/main-layout";
 import Container from "@/components/ui/container";
@@ -115,10 +114,26 @@ const Documents: React.FC = () => {
   };
 
   const handleDeleteDocument = (id: string) => {
-    setDocuments(documents.filter(doc => doc.id !== id));
+    setDocuments(prev => prev.filter(doc => doc.id !== id));
     toast({
       title: "Documento excluído",
-      description: "O documento foi removido da biblioteca com sucesso."
+      description: "O documento foi excluído com sucesso.",
+    });
+  };
+
+  const handleDownloadDocument = (id: string) => {
+    // Em uma aplicação real, isso faria o download do arquivo
+    toast({
+      title: "Download iniciado",
+      description: "O download do documento foi iniciado.",
+    });
+  };
+
+  const handleShareDocument = (id: string) => {
+    // Em uma aplicação real, isso abriria um modal de compartilhamento
+    toast({
+      title: "Compartilhar documento",
+      description: "Opções de compartilhamento abertas.",
     });
   };
 
@@ -245,10 +260,20 @@ const Documents: React.FC = () => {
                                   >
                                     <Edit className="h-4 w-4" />
                                   </Button>
-                                  <Button variant="ghost" size="icon" title="Download">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    title="Download"
+                                    onClick={() => handleDownloadDocument(doc.id)}
+                                  >
                                     <Download className="h-4 w-4" />
                                   </Button>
-                                  <Button variant="ghost" size="icon" title="Compartilhar">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    title="Compartilhar"
+                                    onClick={() => handleShareDocument(doc.id)}
+                                  >
                                     <Share2 className="h-4 w-4" />
                                   </Button>
                                   <Button 

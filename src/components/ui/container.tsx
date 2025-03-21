@@ -1,4 +1,3 @@
-
 import React from "react";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +14,7 @@ const Container: React.FC<ContainerProps> = ({
   return (
     <div 
       className={cn(
-        "w-full px-4 mx-auto animate-fade-in overflow-hidden",
+        "w-full px-4 mx-auto animate-fade-in overflow-container",
         className
       )}
       {...props}

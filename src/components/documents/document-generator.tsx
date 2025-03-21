@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Wand2, Sparkles, Copy, Save, Download, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -314,7 +313,7 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ onDocumentGenerat
               id="content" 
               value={documentContent} 
               onChange={(e) => setDocumentContent(e.target.value)} 
-              className="font-mono min-h-[400px] text-sm whitespace-pre-wrap"
+              className="font-mono min-h-[400px] text-sm whitespace-pre-wrap overflow-container"
             />
           </div>
         </Tabs>
@@ -331,7 +330,16 @@ const DocumentGenerator: React.FC<DocumentGeneratorProps> = ({ onDocumentGenerat
             <Copy className="mr-2 h-4 w-4" />
             Copiar
           </Button>
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            onClick={() => {
+              toast({
+                title: "Exportando PDF",
+                description: "O documento está sendo exportado para PDF.",
+              });
+              // Aqui seria implementada a lógica real de exportação para PDF
+            }}
+          >
             <Download className="mr-2 h-4 w-4" />
             Exportar PDF
           </Button>

@@ -1,4 +1,3 @@
-
 import { useContext } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { CreateEntityContext } from "@/layouts/main-layout";
@@ -52,6 +51,16 @@ export const useNewClientDialog = (setClients: React.Dispatch<React.SetStateActi
       { id: "notes", label: "Observações", placeholder: "Observações adicionais", multiline: true }
     ];
     
+    // Adiciona campo de advogado para administradores
+    if (user.isAdmin) {
+      fields.splice(2, 0, {
+        id: "advogado_id",
+        label: "Advogado Responsável",
+        placeholder: "ID do advogado responsável",
+        description: "Deixe em branco para associar ao administrador"
+      });
+    }
+    
     openDialog({
       title: "Adicionar Novo Cliente",
       description: "Preencha os campos abaixo para adicionar um novo cliente.",
@@ -62,7 +71,7 @@ export const useNewClientDialog = (setClients: React.Dispatch<React.SetStateActi
         try {
           // Preparar dados para o Supabase (formato snake_case)
           const clientData = {
-            advogado_id: user.id,
+            advogado_id: user.isAdmin && formData.advogado_id ? formData.advogado_id : user.id,
             nome: formData.name,
             email: formData.email || null,
             telefone: formData.phone || null,

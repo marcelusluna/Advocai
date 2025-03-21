@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Users, 
@@ -180,7 +179,7 @@ const Index: React.FC = () => {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="pt-4 max-h-[350px] overflow-y-auto">
+                <CardContent className="pt-4 max-h-[350px] overflow-container">
                   <RecentCases />
                 </CardContent>
               </Card>
@@ -212,7 +211,7 @@ const Index: React.FC = () => {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="pt-4 max-h-[350px] overflow-y-auto">
+                <CardContent className="pt-4 max-h-[350px] overflow-container">
                   <UpcomingTasks />
                 </CardContent>
               </Card>
@@ -233,7 +232,7 @@ const Index: React.FC = () => {
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="pt-4 max-h-[350px] overflow-y-auto">
+                <CardContent className="pt-4 max-h-[350px] overflow-container">
                   <NotificationsPanel />
                 </CardContent>
               </Card>
@@ -246,13 +245,18 @@ const Index: React.FC = () => {
                       <CardTitle className="text-lg font-medium text-gray-900">Clientes Recentes</CardTitle>
                       <p className="text-sm text-gray-500 mt-1">Últimos clientes cadastrados</p>
                     </div>
-                    <Button variant="outline" size="sm" className="text-gray-700 border-gray-200">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-gray-700 border-gray-200"
+                      onClick={() => document.querySelector('.recent-clients-add-button')?.click()}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       <span>Novo Cliente</span>
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="p-0 max-h-[320px] overflow-hidden">
+                <CardContent className="p-0 max-h-[320px] overflow-container">
                   <RecentClients />
                 </CardContent>
               </Card>
