@@ -34,7 +34,7 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [form, setForm] = useState<ProfileForm>(() => {
     // Carregar dados do localStorage ou usar valores padrão
-    return getFromStorage<ProfileForm>(STORAGE_KEYS.USER_PROFILE_FORM, {
+    const savedForm = getFromStorage<ProfileForm>(STORAGE_KEYS.USER_PROFILE_FORM, {
       firstName: '',
       lastName: '',
       email: user?.email || '',
@@ -45,6 +45,16 @@ const Profile = () => {
       oabDate: '',
       oabStatus: 'Regular'
     });
+
+    // Se o formulário não tiver nome e o usuário estiver disponível,
+    // tenta extrair nome e sobrenome do nome completo do usuário
+    if (!savedForm.firstName && user?.name) {
+      const nameParts = user.name.split(' ');
+      savedForm.firstName = nameParts[0] || '';
+      savedForm.lastName = nameParts.slice(1).join(' ') || '';
+    }
+
+    return savedForm;
   });
   
   // Carregar dados do perfil do usuário
