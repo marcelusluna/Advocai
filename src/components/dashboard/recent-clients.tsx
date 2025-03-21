@@ -17,12 +17,13 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PlusCircle, Plus, Search, Filter, X } from "lucide-react";
+import { PlusCircle, Plus, Search, Filter, X, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth/auth-provider";
 import { supabase } from "@/integrations/supabase/client";
 import { CreateEntityContext } from "@/layouts/main-layout";
 import { cn } from "@/lib/utils";
+import { saveToStorage, getFromStorage, STORAGE_KEYS } from "@/services/storage-service";
 
 interface Client {
   id: string;
@@ -35,21 +36,33 @@ interface Client {
 }
 
 const RecentClients: React.FC = () => {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [filteredClients, setFilteredClients] = useState<Client[]>([]);
+  const [clients, setClients] = useState<Client[]>(() => {
+    // Recuperar clientes do localStorage ao inicializar o componente
+    return getFromStorage<Client[]>(STORAGE_KEYS.CLIENTS, []);
+  });
+  const [filteredClients, setFilteredClients] = useState<Client[]>(clients);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0); // Estado para forçar a atualização
   
   const { toast } = useToast();
   const { openDialog } = useContext(CreateEntityContext);
   const { user } = useAuth();
 
+  // Efeito para buscar clientes quando o usuário mudar ou quando forçar atualização
   useEffect(() => {
     fetchClients();
-  }, [user]);
+  }, [user, refreshKey]);
+
+  // Efeito para salvar clientes no localStorage quando forem atualizados
+  useEffect(() => {
+    if (clients.length > 0) {
+      saveToStorage(STORAGE_KEYS.CLIENTS, clients);
+    }
+  }, [clients]);
 
   const fetchClients = async () => {
     if (!user) return;
@@ -89,12 +102,20 @@ const RecentClients: React.FC = () => {
         
         setClients(mappedClients);
         setFilteredClients(mappedClients);
+        
+        // Salvar no localStorage
+        saveToStorage(STORAGE_KEYS.CLIENTS, mappedClients);
       }
     } catch (error) {
       console.error("Erro ao buscar clientes:", error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Função para forçar o recarregamento dos dados
+  const handleRefresh = () => {
+    setRefreshKey(prev => prev + 1); // Incrementa a chave para forçar a execução do useEffect
   };
 
   const getRelativeTime = (date: Date) => {
@@ -223,6 +244,9 @@ const RecentClients: React.FC = () => {
             setClients(updatedClients);
             setFilteredClients(updatedClients);
             
+            // Salvar os clientes atualizados no localStorage
+            saveToStorage(STORAGE_KEYS.CLIENTS, updatedClients);
+            
             // Recarregar a lista de clientes para garantir sincronização
             setTimeout(() => {
               fetchClients();
@@ -295,6 +319,15 @@ const RecentClients: React.FC = () => {
                 onClick={() => setShowFilterDialog(true)}
               >
                 <Filter className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8" 
+                onClick={handleRefresh}
+                disabled={isLoading}
+              >
+                <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
               </Button>
               <Button 
                 variant="ghost" 
